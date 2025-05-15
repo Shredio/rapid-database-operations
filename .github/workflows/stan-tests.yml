@@ -1,0 +1,32 @@
+name: "Static analysis"
+
+on: [push, pull_request]
+
+jobs:
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.4
+          coverage: none
+
+      - run: composer install --no-progress --prefer-dist
+      - run: composer phpstan
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ['8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.version }}
+          coverage: none
+
+      - run: composer install --no-progress --prefer-dist
+      - run: composer test

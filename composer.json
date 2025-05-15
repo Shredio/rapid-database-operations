@@ -1,0 +1,31 @@
+{
+	"name": "shredio/doctrine-rapid-operations",
+	"type": "library",
+	"license": "MIT",
+	"require": {
+		"php": ">=8.3"
+	},
+	"autoload": {
+		"psr-4": {
+			"Shredio\\RapidDatabaseOperations\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Tests\\": "tests"
+		}
+	},
+	"scripts": {
+		"phpstan": "phpstan analyse",
+		"test": "vendor/bin/phpunit tests"
+	},
+	"require-dev": {
+		"phpstan/phpstan": "^2.1",
+		"phpunit/phpunit": "^12.1",
+		"doctrine/orm": "^3.0",
+		"doctrine/dbal": "^4.0",
+		"symfony/cache": "^7.2",
+		"symfony/http-kernel": "^7.2",
+		"symfony/dependency-injection": "^7.2"
+	}
+}
