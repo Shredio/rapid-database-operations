@@ -33,13 +33,16 @@ abstract class BaseRapidBigUpdater extends BaseRapidUpdater
 	 */
 	abstract protected function createInserter(): RapidInserter;
 
+	/**
+	 * @internal Use of this method outside of the library is currently highly discouraged.
+	 */
 	public function add(OperationValues $values): static
 	{
 		if (!$this->fields) {
 			$this->fields = $values->keys();
 		}
 
-		$this->inserter->add($values);
+		$this->addOperationValuesToOperation($this->inserter, $values);
 
 		return $this;
 	}

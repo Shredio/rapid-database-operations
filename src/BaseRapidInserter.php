@@ -9,8 +9,9 @@ use Shredio\RapidDatabaseOperations\Platform\RapidOperationPlatform;
 /**
  * @template T of object
  * @implements RapidInserter<T>
+ * @extends BaseRapidOperation<T>
  */
-abstract class BaseRapidInserter implements RapidInserter
+abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInserter
 {
 
 	public const string ColumnsToUpdate = 'columnsToUpdate';
@@ -54,6 +55,9 @@ abstract class BaseRapidInserter implements RapidInserter
 		return $this->add(new OperationArrayValues($values));
 	}
 
+	/**
+	 * @internal Use of this method outside of the library is currently highly discouraged.
+	 */
 	public function add(OperationValues $values): static
 	{
 		$this->checkCorrectOrder($values);

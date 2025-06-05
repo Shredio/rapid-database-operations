@@ -13,8 +13,6 @@ interface RapidOperation
 	 */
 	public function addRaw(array $values): static;
 
-	public function add(OperationValues $values): static;
-
 	public function execute(): void;
 
 	public function getSql(): string;

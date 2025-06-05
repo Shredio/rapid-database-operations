@@ -5,8 +5,9 @@ namespace Shredio\RapidDatabaseOperations;
 /**
  * @template T of object
  * @implements RapidOperation<T>
+ * @extends BaseRapidOperation<T>
  */
-final class BatchedRapidOperation implements RapidOperation
+final class BatchedRapidOperation extends BaseRapidOperation implements RapidOperation
 {
 
 	private int $count = 0;
@@ -30,9 +31,12 @@ final class BatchedRapidOperation implements RapidOperation
 		return $this;
 	}
 
+	/**
+	 * @internal Use of this method outside of the library is currently highly discouraged.
+	 */
 	public function add(OperationValues $values): static
 	{
-		$this->operation->add($values);
+		$this->addOperationValuesToOperation($this->operation, $values);
 		$this->increment();
 
 		return $this;

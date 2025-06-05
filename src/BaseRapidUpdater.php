@@ -7,8 +7,9 @@ use InvalidArgumentException;
 /**
  * @template T of object
  * @implements RapidUpdater<T>
+ * @extends BaseRapidOperation<T>
  */
-abstract class BaseRapidUpdater implements RapidUpdater
+abstract class BaseRapidUpdater extends BaseRapidOperation implements RapidUpdater
 {
 
 	protected string $sql = '';
@@ -32,6 +33,9 @@ abstract class BaseRapidUpdater implements RapidUpdater
 		return $this->add(new OperationArrayValues($values));
 	}
 
+	/**
+	 * @internal Use of this method outside of the library is currently highly discouraged.
+	 */
 	public function add(OperationValues $values): static
 	{
 		$conditions = $this->extractConditions($values);
