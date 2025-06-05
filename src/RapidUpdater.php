@@ -2,6 +2,10 @@
 
 namespace Shredio\RapidDatabaseOperations;
 
+/**
+ * @template T of object
+ * @extends RapidOperation<T>
+ */
 interface RapidUpdater extends RapidOperation
 {
 

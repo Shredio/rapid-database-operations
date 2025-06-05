@@ -2,8 +2,8 @@
 
 namespace Shredio\RapidDatabaseOperations\Symfony;
 
-use Shredio\RapidDatabaseOperations\Doctrine\DoctrineEntityRapidOperationFactory;
-use Shredio\RapidDatabaseOperations\EntityRapidOperationFactory;
+use Shredio\RapidDatabaseOperations\Doctrine\DoctrineRapidOperationFactory;
+use Shredio\RapidDatabaseOperations\RapidOperationFactory;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
@@ -18,7 +18,7 @@ final class RapidDatabaseOperationsBundle extends AbstractBundle
 	{
 		$services = $container->services();
 
-		$services->set(EntityRapidOperationFactory::class, DoctrineEntityRapidOperationFactory::class);
+		$services->set(RapidOperationFactory::class, DoctrineRapidOperationFactory::class);
 	}
 
 }

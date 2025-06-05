@@ -10,6 +10,10 @@ use Shredio\RapidDatabaseOperations\Doctrine\Trait\ExecuteDoctrineOperation;
 use Shredio\RapidDatabaseOperations\Doctrine\Trait\MapDoctrineColumn;
 use Shredio\RapidDatabaseOperations\BaseRapidBigUpdater;
 
+/**
+ * @template T of object
+ * @extends BaseRapidBigUpdater<T>
+ */
 final class DoctrineRapidBigUpdater extends BaseRapidBigUpdater
 {
 
@@ -20,6 +24,7 @@ final class DoctrineRapidBigUpdater extends BaseRapidBigUpdater
 	private readonly ClassMetadata $metadata;
 
 	/**
+	 * @param class-string<T> $entity
 	 * @param string[] $conditions
 	 */
 	public function __construct(
@@ -33,6 +38,9 @@ final class DoctrineRapidBigUpdater extends BaseRapidBigUpdater
 		parent::__construct($this->metadata->getTableName(), $conditions, new DoctrineOperationEscaper($this->em));
 	}
 
+	/**
+	 * @return DoctrineRapidInserter<T>
+	 */
 	protected function createInserter(): DoctrineRapidInserter
 	{
 		return new DoctrineRapidInserter($this->metadata->name, $this->em, [

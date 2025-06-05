@@ -2,11 +2,19 @@
 
 namespace Shredio\RapidDatabaseOperations;
 
+/**
+ * @template T of object
+ * @implements RapidOperation<T>
+ */
 final class BatchedRapidOperation implements RapidOperation
 {
 
 	private int $count = 0;
 
+	/**
+	 * @param RapidOperation<T> $operation
+	 * @param int $size The number of operations to batch before executing
+	 */
 	public function __construct(
 		private readonly RapidOperation $operation,
 		private readonly int $size,

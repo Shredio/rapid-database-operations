@@ -2,6 +2,9 @@
 
 namespace Shredio\RapidDatabaseOperations;
 
+/**
+ * @template T of object
+ */
 interface RapidOperation
 {
 

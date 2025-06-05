@@ -2,11 +2,16 @@
 
 namespace Shredio\RapidDatabaseOperations;
 
-abstract class BaseRapidBigUpdater extends BaseRapidUpdater implements RapidUpdater
+/**
+ * @template T of object
+ * @extends BaseRapidUpdater<T>
+ */
+abstract class BaseRapidBigUpdater extends BaseRapidUpdater
 {
 
 	protected readonly string $temporaryTable;
 
+	/** @var RapidInserter<T> */
 	private RapidInserter $inserter;
 
 	/** @var string[] */
@@ -23,6 +28,9 @@ abstract class BaseRapidBigUpdater extends BaseRapidUpdater implements RapidUpda
 		$this->inserter = $this->createInserter();
 	}
 
+	/**
+	 * @return RapidInserter<T>
+	 */
 	abstract protected function createInserter(): RapidInserter;
 
 	public function add(OperationValues $values): static

@@ -4,6 +4,10 @@ namespace Shredio\RapidDatabaseOperations;
 
 use InvalidArgumentException;
 
+/**
+ * @template T of object
+ * @implements RapidUpdater<T>
+ */
 abstract class BaseRapidUpdater implements RapidUpdater
 {
 

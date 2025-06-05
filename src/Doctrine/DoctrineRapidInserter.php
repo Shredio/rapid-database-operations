@@ -9,6 +9,10 @@ use Shredio\RapidDatabaseOperations\Doctrine\Trait\MapDoctrineColumn;
 use Shredio\RapidDatabaseOperations\BaseRapidInserter;
 use Shredio\RapidDatabaseOperations\Platform\RapidOperationPlatform;
 
+/**
+ * @template T of object
+ * @extends BaseRapidInserter<T>
+ */
 final class DoctrineRapidInserter extends BaseRapidInserter
 {
 
@@ -21,6 +25,7 @@ final class DoctrineRapidInserter extends BaseRapidInserter
 	private ?RapidOperationPlatform $platform = null;
 
 	/**
+	 * @param class-string<T> $entity
 	 * @param mixed[] $options
 	 */
 	public function __construct(

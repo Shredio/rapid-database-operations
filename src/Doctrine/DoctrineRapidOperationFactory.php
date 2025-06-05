@@ -4,11 +4,11 @@ namespace Shredio\RapidDatabaseOperations\Doctrine;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
-use Shredio\RapidDatabaseOperations\EntityRapidOperationFactory;
+use Shredio\RapidDatabaseOperations\RapidOperationFactory;
 use Shredio\RapidDatabaseOperations\RapidInserter;
 use Shredio\RapidDatabaseOperations\RapidUpdater;
 
-final readonly class DoctrineEntityRapidOperationFactory implements EntityRapidOperationFactory
+final readonly class DoctrineRapidOperationFactory implements RapidOperationFactory
 {
 
 	public function __construct(
@@ -18,8 +18,10 @@ final readonly class DoctrineEntityRapidOperationFactory implements EntityRapidO
 	}
 
 	/**
-	 * @param class-string $entity
+	 * @template T of object
+	 * @param class-string<T> $entity
 	 * @param string[] $conditions
+	 * @return RapidUpdater<T>
 	 */
 	public function createBigUpdate(string $entity, array $conditions): RapidUpdater
 	{
@@ -27,8 +29,10 @@ final readonly class DoctrineEntityRapidOperationFactory implements EntityRapidO
 	}
 
 	/**
-	 * @param class-string $entity
+	 * @template T of object
+	 * @param class-string<T> $entity
 	 * @param string[] $conditions fields used for conditions e.g. ['id']
+	 * @return RapidUpdater<T>
 	 */
 	public function createUpdate(string $entity, array $conditions): RapidUpdater
 	{
@@ -36,8 +40,10 @@ final readonly class DoctrineEntityRapidOperationFactory implements EntityRapidO
 	}
 
 	/**
-	 * @param class-string $entity
+	 * @template T of object
+	 * @param class-string<T> $entity
 	 * @param string[] $columnsToUpdate
+	 * @return RapidInserter<T>
 	 */
 	public function createUpsert(string $entity, array $columnsToUpdate = []): RapidInserter
 	{
@@ -48,7 +54,9 @@ final readonly class DoctrineEntityRapidOperationFactory implements EntityRapidO
 	}
 
 	/**
-	 * @param class-string $entity
+	 * @template T of object
+	 * @param class-string<T> $entity
+	 * @return RapidInserter<T>
 	 */
 	public function createInsert(string $entity): RapidInserter
 	{

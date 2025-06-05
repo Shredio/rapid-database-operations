@@ -8,6 +8,10 @@ use Shredio\RapidDatabaseOperations\Doctrine\Trait\ExecuteDoctrineOperation;
 use Shredio\RapidDatabaseOperations\Doctrine\Trait\MapDoctrineColumn;
 use Shredio\RapidDatabaseOperations\BaseRapidUpdater;
 
+/**
+ * @template T of object
+ * @extends BaseRapidUpdater<T>
+ */
 final class DoctrineRapidUpdater extends BaseRapidUpdater
 {
 
@@ -18,6 +22,7 @@ final class DoctrineRapidUpdater extends BaseRapidUpdater
 	private readonly ClassMetadata $metadata;
 
 	/**
+	 * @param class-string<T> $entity
 	 * @param string[] $conditions
 	 */
 	public function __construct(

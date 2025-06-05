@@ -6,6 +6,10 @@ use InvalidArgumentException;
 use LogicException;
 use Shredio\RapidDatabaseOperations\Platform\RapidOperationPlatform;
 
+/**
+ * @template T of object
+ * @implements RapidInserter<T>
+ */
 abstract class BaseRapidInserter implements RapidInserter
 {
 
