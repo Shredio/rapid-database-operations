@@ -64,6 +64,18 @@ final readonly class DoctrineRapidOperationFactory implements RapidOperationFact
 	}
 
 	/**
+	 * @template T of object
+	 * @param class-string<T> $entity
+	 * @return RapidInserter<T>
+	 */
+	public function createUniqueInsert(string $entity): RapidInserter
+	{
+		return new DoctrineRapidInserter($entity, $this->getEntityManager($entity), [
+			DoctrineRapidInserter::Mode => DoctrineRapidInserter::ModeInsertNonExisting,
+		]);
+	}
+
+	/**
 	 * @param class-string $entity
 	 */
 	private function getEntityManager(string $entity): EntityManagerInterface
