@@ -42,13 +42,13 @@ final readonly class DoctrineRapidOperationFactory implements RapidOperationFact
 	/**
 	 * @template T of object
 	 * @param class-string<T> $entity
-	 * @param string[] $columnsToUpdate
+	 * @param string[] $fieldsToUpdate
 	 * @return RapidInserter<T>
 	 */
-	public function createUpsert(string $entity, array $columnsToUpdate = []): RapidInserter
+	public function createUpsert(string $entity, array $fieldsToUpdate = []): RapidInserter
 	{
 		return new DoctrineRapidInserter($entity, $this->getEntityManager($entity), [
-			DoctrineRapidInserter::ColumnsToUpdate => $columnsToUpdate,
+			DoctrineRapidInserter::ColumnsToUpdate => $fieldsToUpdate,
 			DoctrineRapidInserter::Mode => DoctrineRapidInserter::ModeUpsert,
 		]);
 	}

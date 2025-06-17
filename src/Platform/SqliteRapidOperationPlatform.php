@@ -6,11 +6,11 @@ final class SqliteRapidOperationPlatform implements RapidOperationPlatform
 {
 
 	/**
-	 * @param non-empty-list<string> $ids
+	 * @param non-empty-list<string> $idColumns
 	 */
-	public function onConflictNothing(array $ids): string
+	public function onConflictNothing(array $idColumns): string
 	{
-		return sprintf('ON CONFLICT(%s) DO NOTHING', implode(', ', $ids));
+		return sprintf('ON CONFLICT(%s) DO NOTHING', implode(', ', $idColumns));
 	}
 
 	/**

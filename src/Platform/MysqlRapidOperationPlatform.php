@@ -6,11 +6,11 @@ final class MysqlRapidOperationPlatform implements RapidOperationPlatform
 {
 
 	/**
-	 * @param non-empty-list<string> $ids
+	 * @param non-empty-list<string> $idColumns
 	 */
-	public function onConflictNothing(array $ids): string
+	public function onConflictNothing(array $idColumns): string
 	{
-		return sprintf('ON DUPLICATE KEY UPDATE %s = %s', $ids[0], $ids[0]);
+		return sprintf('ON DUPLICATE KEY UPDATE %s = %s', $idColumns[0], $idColumns[0]);
 	}
 
 	/**
