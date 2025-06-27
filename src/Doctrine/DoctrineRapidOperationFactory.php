@@ -4,6 +4,7 @@ namespace Shredio\RapidDatabaseOperations\Doctrine;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Shredio\RapidDatabaseOperations\Metadata\ClassMetadataProvider;
 use Shredio\RapidDatabaseOperations\RapidOperationFactory;
 use Shredio\RapidDatabaseOperations\RapidInserter;
 use Shredio\RapidDatabaseOperations\RapidUpdater;
@@ -25,7 +26,7 @@ final readonly class DoctrineRapidOperationFactory implements RapidOperationFact
 	 */
 	public function createBigUpdate(string $entity, array $conditions): RapidUpdater
 	{
-		return new DoctrineRapidBigUpdater($entity, $conditions, $this->getEntityManager($entity));
+		return new DoctrineRapidBigUpdater($entity, $conditions, $this->getEntityManager($entity), new ClassMetadataProvider($this->registry));
 	}
 
 	/**
@@ -36,7 +37,7 @@ final readonly class DoctrineRapidOperationFactory implements RapidOperationFact
 	 */
 	public function createUpdate(string $entity, array $conditions): RapidUpdater
 	{
-		return new DoctrineRapidUpdater($entity, $conditions, $this->getEntityManager($entity));
+		return new DoctrineRapidUpdater($entity, $conditions, $this->getEntityManager($entity), new ClassMetadataProvider($this->registry));
 	}
 
 	/**
@@ -47,7 +48,7 @@ final readonly class DoctrineRapidOperationFactory implements RapidOperationFact
 	 */
 	public function createUpsert(string $entity, array $fieldsToUpdate = []): RapidInserter
 	{
-		return new DoctrineRapidInserter($entity, $this->getEntityManager($entity), [
+		return new DoctrineRapidInserter($entity, $this->getEntityManager($entity), new ClassMetadataProvider($this->registry), [
 			DoctrineRapidInserter::ColumnsToUpdate => $fieldsToUpdate,
 			DoctrineRapidInserter::Mode => DoctrineRapidInserter::ModeUpsert,
 		]);
@@ -60,7 +61,7 @@ final readonly class DoctrineRapidOperationFactory implements RapidOperationFact
 	 */
 	public function createInsert(string $entity): RapidInserter
 	{
-		return new DoctrineRapidInserter($entity, $this->getEntityManager($entity));
+		return new DoctrineRapidInserter($entity, $this->getEntityManager($entity), new ClassMetadataProvider($this->registry));
 	}
 
 	/**
@@ -70,7 +71,7 @@ final readonly class DoctrineRapidOperationFactory implements RapidOperationFact
 	 */
 	public function createUniqueInsert(string $entity): RapidInserter
 	{
-		return new DoctrineRapidInserter($entity, $this->getEntityManager($entity), [
+		return new DoctrineRapidInserter($entity, $this->getEntityManager($entity), new ClassMetadataProvider($this->registry), [
 			DoctrineRapidInserter::Mode => DoctrineRapidInserter::ModeInsertNonExisting,
 		]);
 	}

@@ -7,6 +7,8 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 use Shredio\RapidDatabaseOperations\Doctrine\Trait\ExecuteDoctrineOperation;
 use Shredio\RapidDatabaseOperations\Doctrine\Trait\MapDoctrineColumn;
 use Shredio\RapidDatabaseOperations\BaseRapidUpdater;
+use Shredio\RapidDatabaseOperations\Metadata\ClassMetadataProvider;
+use Shredio\RapidDatabaseOperations\Trait\AddEntityMethod;
 
 /**
  * @template T of object
@@ -17,6 +19,8 @@ final class DoctrineRapidUpdater extends BaseRapidUpdater
 
 	use ExecuteDoctrineOperation;
 	use MapDoctrineColumn;
+	/** @use AddEntityMethod<T> */
+	use AddEntityMethod;
 
 	/** @var ClassMetadata<object> */
 	private readonly ClassMetadata $metadata;
@@ -29,6 +33,7 @@ final class DoctrineRapidUpdater extends BaseRapidUpdater
 		string $entity,
 		array $conditions,
 		private readonly EntityManagerInterface $em,
+		private readonly ClassMetadataProvider $metadataProvider,
 	)
 	{
 		$this->metadata = $this->em->getClassMetadata($entity);

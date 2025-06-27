@@ -20,6 +20,11 @@ interface RapidOperation
 	public function addRaw(array $values): static;
 
 	/**
+	 * @param T $entity
+	 */
+	public function addEntity(object $entity): static;
+
+	/**
 	 * Executes the database operation.
 	 * Performs the actual INSERT, UPDATE, or other SQL operation.
 	 */

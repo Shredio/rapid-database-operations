@@ -7,7 +7,9 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 use Shredio\RapidDatabaseOperations\Doctrine\Trait\ExecuteDoctrineOperation;
 use Shredio\RapidDatabaseOperations\Doctrine\Trait\MapDoctrineColumn;
 use Shredio\RapidDatabaseOperations\BaseRapidInserter;
+use Shredio\RapidDatabaseOperations\Metadata\ClassMetadataProvider;
 use Shredio\RapidDatabaseOperations\Platform\RapidOperationPlatform;
+use Shredio\RapidDatabaseOperations\Trait\AddEntityMethod;
 
 /**
  * @template T of object
@@ -18,6 +20,8 @@ final class DoctrineRapidInserter extends BaseRapidInserter
 
 	use ExecuteDoctrineOperation;
 	use MapDoctrineColumn;
+	/** @use AddEntityMethod<T> */
+	use AddEntityMethod;
 
 	/** @var ClassMetadata<object> */
 	private readonly ClassMetadata $metadata;
@@ -31,6 +35,7 @@ final class DoctrineRapidInserter extends BaseRapidInserter
 	public function __construct(
 		string $entity,
 		private readonly EntityManagerInterface $em,
+		private readonly ClassMetadataProvider $metadataProvider,
 		array $options = [],
 	)
 	{

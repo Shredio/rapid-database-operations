@@ -31,6 +31,14 @@ final class BatchedRapidOperation extends BaseRapidOperation implements RapidOpe
 		return $this;
 	}
 
+	public function addEntity(object $entity): static
+	{
+		$this->operation->addEntity($entity);
+		$this->increment();
+
+		return $this;
+	}
+
 	/**
 	 * @internal Use of this method outside of the library is currently highly discouraged.
 	 */

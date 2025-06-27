@@ -6,7 +6,10 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMSetup;
+use Doctrine\Persistence\ManagerRegistry;
+use Shredio\RapidDatabaseOperations\Metadata\ClassMetadataProvider;
 
 trait RapidEnvironment
 {
@@ -15,7 +18,7 @@ trait RapidEnvironment
 	{
 		$platform ??= $this->getDefaultPlatform();
 
-		$configuration = ORMSetup::createAttributeMetadataConfiguration([__DIR__ . '/entity'], true);
+		$configuration = ORMSetup::createAttributeMetadataConfiguration([__DIR__ . '/../Unit/Entity'], true);
 		$connection = $this->createStub(Connection::class);
 		$connection->method('quote')->willReturnCallback(function (string $value): string {
 			return sprintf("'%s'", $value);
@@ -30,6 +33,11 @@ trait RapidEnvironment
 		$connection->method('getDatabasePlatform')->willReturnCallback(fn () => $platform);
 
 		return new EntityManager($connection, $configuration);
+	}
+
+	private function createClassMetadataProvider(EntityManagerInterface $em): ClassMetadataProvider
+	{
+		return new ClassMetadataProvider(new MockManagerRegistry($em));
 	}
 
 	private function getDefaultPlatform(): string

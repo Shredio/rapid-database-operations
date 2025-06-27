@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 
-namespace Tests\Unit\entity;
+namespace Tests\Unit\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -17,6 +17,8 @@ class Article
 
     #[ORM\Column(type: "text")]
     private string $content;
+
+	public string $outOfField = 'This is not a field in the database';
 
 	public function __construct(int $id, string $title, string $content)
 	{

@@ -9,6 +9,8 @@ use LogicException;
 use Shredio\RapidDatabaseOperations\Doctrine\Trait\ExecuteDoctrineOperation;
 use Shredio\RapidDatabaseOperations\Doctrine\Trait\MapDoctrineColumn;
 use Shredio\RapidDatabaseOperations\BaseRapidBigUpdater;
+use Shredio\RapidDatabaseOperations\Metadata\ClassMetadataProvider;
+use Shredio\RapidDatabaseOperations\Trait\AddEntityMethod;
 
 /**
  * @template T of object
@@ -19,6 +21,8 @@ final class DoctrineRapidBigUpdater extends BaseRapidBigUpdater
 
 	use ExecuteDoctrineOperation;
 	use MapDoctrineColumn;
+	/** @use AddEntityMethod<T> */
+	use AddEntityMethod;
 
 	/** @var ClassMetadata<object> */
 	private readonly ClassMetadata $metadata;
@@ -31,6 +35,7 @@ final class DoctrineRapidBigUpdater extends BaseRapidBigUpdater
 		string $entity,
 		array $conditions,
 		private readonly EntityManagerInterface $em,
+		private readonly ClassMetadataProvider $metadataProvider,
 	)
 	{
 		$this->metadata = $this->em->getClassMetadata($entity);
@@ -43,7 +48,7 @@ final class DoctrineRapidBigUpdater extends BaseRapidBigUpdater
 	 */
 	protected function createInserter(): DoctrineRapidInserter
 	{
-		return new DoctrineRapidInserter($this->metadata->name, $this->em, [
+		return new DoctrineRapidInserter($this->metadata->name, $this->em, $this->metadataProvider, [
 			'table' => $this->temporaryTable,
 		]);
 	}

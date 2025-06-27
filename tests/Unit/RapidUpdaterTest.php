@@ -7,8 +7,8 @@ use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 use Shredio\RapidDatabaseOperations\Doctrine\DoctrineRapidUpdater;
 use Tests\Common\RapidEnvironment;
-use Tests\Unit\entity\Article;
-use Tests\Unit\entity\Post;
+use Tests\Unit\Entity\Article;
+use Tests\Unit\Entity\Post;
 
 final class RapidUpdaterTest extends TestCase
 {
@@ -19,7 +19,7 @@ final class RapidUpdaterTest extends TestCase
 	#[TestWith(['sqlite'])]
 	public function testUpdate(string $platform): void
 	{
-		$updater = new DoctrineRapidUpdater(Article::class, ['id'], $this->createEntityManager($platform));
+		$updater = new DoctrineRapidUpdater(Article::class, ['id'], $em = $this->createEntityManager($platform), $this->createClassMetadataProvider($em));
 		$updater->addRaw([
 			'id' => 1,
 			'title' => 'foo',
@@ -31,7 +31,7 @@ final class RapidUpdaterTest extends TestCase
 
 	public function testUpdateWithCustomNames(): void
 	{
-		$updater = new DoctrineRapidUpdater(Post::class, ['id'], $this->createEntityManager());
+		$updater = new DoctrineRapidUpdater(Post::class, ['id'], $em = $this->createEntityManager(), $this->createClassMetadataProvider($em));
 		$updater->addRaw([
 			'id' => 1,
 			'content' => 'bar',
@@ -44,7 +44,7 @@ final class RapidUpdaterTest extends TestCase
 	#[TestWith(['sqlite'])]
 	public function testMultipleUpdates(string $platform): void
 	{
-		$updater = new DoctrineRapidUpdater(Article::class, ['id'], $this->createEntityManager($platform));
+		$updater = new DoctrineRapidUpdater(Article::class, ['id'], $em = $this->createEntityManager($platform), $this->createClassMetadataProvider($em));
 		$updater->addRaw([
 			'id' => 1,
 			'title' => 'foo',
@@ -66,7 +66,7 @@ final class RapidUpdaterTest extends TestCase
 	#[TestWith(['sqlite'])]
 	public function testUpdateWithMultipleConditions(string $platform): void
 	{
-		$updater = new DoctrineRapidUpdater(Article::class, ['id', 'title'], $this->createEntityManager($platform));
+		$updater = new DoctrineRapidUpdater(Article::class, ['id', 'title'], $em = $this->createEntityManager($platform), $this->createClassMetadataProvider($em));
 		$updater->addRaw([
 			'id' => 1,
 			'title' => 'foo',
@@ -78,7 +78,7 @@ final class RapidUpdaterTest extends TestCase
 
 	public function testEmptyValues(): void
 	{
-		$updater = new DoctrineRapidUpdater(Article::class, ['id', 'title', 'content'], $this->createEntityManager());
+		$updater = new DoctrineRapidUpdater(Article::class, ['id', 'title', 'content'], $em = $this->createEntityManager(), $this->createClassMetadataProvider($em));
 
 		$this->expectException(InvalidArgumentException::class);
 		$this->expectExceptionMessage('At least one non-conditional value must be provided.');
@@ -92,7 +92,7 @@ final class RapidUpdaterTest extends TestCase
 
 	public function testPartialUpdate(): void
 	{
-		$updater = new DoctrineRapidUpdater(Article::class, ['id'], $this->createEntityManager());
+		$updater = new DoctrineRapidUpdater(Article::class, ['id'], $em = $this->createEntityManager(), $this->createClassMetadataProvider($em));
 		$updater->addRaw([
 			'id' => 1,
 			'title' => 'foo',
