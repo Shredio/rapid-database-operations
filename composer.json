@@ -16,7 +16,7 @@
 		}
 	},
 	"scripts": {
-		"phpstan": "phpstan analyse",
+		"phpstan": "phpstan analyse --memory-limit=-1",
 		"test": "vendor/bin/phpunit tests"
 	},
 	"require-dev": {
