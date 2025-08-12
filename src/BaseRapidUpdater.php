@@ -15,6 +15,9 @@ abstract class BaseRapidUpdater extends BaseRapidOperation implements RapidUpdat
 
 	use ExecuteMethod;
 
+	/** @var int<0, max> */
+	private int $count = 0;
+
 	protected string $sql = '';
 
 	protected readonly string $table;
@@ -47,6 +50,7 @@ abstract class BaseRapidUpdater extends BaseRapidOperation implements RapidUpdat
 			throw new InvalidArgumentException('At least one non-conditional value must be provided.');
 		}
 
+		$this->count++;
 		$this->sql .= sprintf("UPDATE %s SET %s WHERE %s;\n", $this->table, $this->buildSet($values), $this->buildAndWhere($conditions));
 
 		return $this;
@@ -85,6 +89,7 @@ abstract class BaseRapidUpdater extends BaseRapidOperation implements RapidUpdat
 	protected function reset(): void
 	{
 		$this->sql = '';
+		$this->count = 0;
 	}
 
 	/**
@@ -110,6 +115,11 @@ abstract class BaseRapidUpdater extends BaseRapidOperation implements RapidUpdat
 	private function resolveField(string $field): string
 	{
 		return $this->escaper->escapeColumn($this->mapFieldToColumn($field));
+	}
+
+	public function getItemCount(): int
+	{
+		return $this->count;
 	}
 
 }

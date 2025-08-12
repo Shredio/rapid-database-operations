@@ -34,6 +34,7 @@ final class RapidInserterTest extends TestCase
 
 		$this->assertSame("INSERT INTO `articles` (`id`, `title`, `content`) VALUES ('1', 'foo', 'bar'),
 ('2', 'baz', 'qux');", $inserter->getSql());
+		$this->assertSame(2, $inserter->getItemCount());
 	}
 
 	public function testInsertWithCustomNames(): void

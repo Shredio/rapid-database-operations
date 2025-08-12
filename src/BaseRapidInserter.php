@@ -17,6 +17,9 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 
 	use ExecuteMethod;
 
+	/** @var int<0, max> */
+	private int $count = 0;
+
 	public const string ColumnsToUpdate = 'columnsToUpdate';
 	public const string Mode = 'mode';
 	public const int ModeNormal = 0;
@@ -69,6 +72,7 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 			$this->sql .= $this->sqlForStart($values);
 		}
 
+		$this->count++;
 		$this->sql .= $this->buildValues($values) . ",\n";
 
 		return $this;
@@ -206,6 +210,11 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 	private function resolveField(string $field): string
 	{
 		return $this->escaper->escapeColumn($this->mapFieldToColumn($field));
+	}
+
+	public function getItemCount(): int
+	{
+		return $this->count;
 	}
 
 }

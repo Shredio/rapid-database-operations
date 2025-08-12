@@ -125,4 +125,9 @@ abstract class BaseRapidBigUpdater extends BaseRapidUpdater
 		$this->inserter = $this->createInserter();
 	}
 
+	public function getItemCount(): int
+	{
+		return $this->inserter->getItemCount();
+	}
+
 }

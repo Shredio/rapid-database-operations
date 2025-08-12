@@ -36,4 +36,9 @@ interface RapidOperation
 	 */
 	public function getSql(): string;
 
+	/**
+	 * @return int<0, max>
+	 */
+	public function getItemCount(): int;
+
 }

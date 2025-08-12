@@ -27,6 +27,7 @@ final class RapidUpdaterTest extends TestCase
 		]);
 
 		$this->assertSame("UPDATE `articles` SET `title` = 'foo', `content` = 'bar' WHERE `id` = '1';", $updater->getSql());
+		$this->assertSame(1, $updater->getItemCount());
 	}
 
 	public function testUpdateWithCustomNames(): void
