@@ -10,6 +10,9 @@ namespace Shredio\RapidDatabaseOperations;
 final class BatchedRapidOperation extends BaseRapidOperation implements RapidOperation
 {
 
+	/** @var int<0, max> */
+	private int $count = 0;
+
 	private int $itemCountInBatch = 0;
 
 	private int $executedItemCount = 0;
@@ -67,11 +70,17 @@ final class BatchedRapidOperation extends BaseRapidOperation implements RapidOpe
 	private function increment(): void
 	{
 		$this->itemCountInBatch++;
+		$this->count++;
 
 		if ($this->itemCountInBatch >= $this->size) {
 			$this->executedItemCount += $this->operation->execute();
 			$this->itemCountInBatch = 0;
 		}
+	}
+
+	public function getItemCount(): int
+	{
+		return $this->count;
 	}
 
 }
