@@ -10,7 +10,9 @@ namespace Shredio\RapidDatabaseOperations;
 final class BatchedRapidOperation extends BaseRapidOperation implements RapidOperation
 {
 
-	private int $count = 0;
+	private int $itemCountInBatch = 0;
+
+	private int $executedItemCount = 0;
 
 	/**
 	 * @param RapidOperation<T> $operation
@@ -50,9 +52,11 @@ final class BatchedRapidOperation extends BaseRapidOperation implements RapidOpe
 		return $this;
 	}
 
-	public function execute(): void
+	public function execute(): int
 	{
-		$this->operation->execute();
+		$this->executedItemCount += $this->operation->execute();
+
+		return $this->executedItemCount;
 	}
 
 	public function getSql(): string
@@ -62,11 +66,11 @@ final class BatchedRapidOperation extends BaseRapidOperation implements RapidOpe
 
 	private function increment(): void
 	{
-		$this->count++;
+		$this->itemCountInBatch++;
 
-		if ($this->count >= $this->size) {
-			$this->operation->execute();
-			$this->count = 0;
+		if ($this->itemCountInBatch >= $this->size) {
+			$this->executedItemCount += $this->operation->execute();
+			$this->itemCountInBatch = 0;
 		}
 	}
 

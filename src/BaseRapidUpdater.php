@@ -3,6 +3,7 @@
 namespace Shredio\RapidDatabaseOperations;
 
 use InvalidArgumentException;
+use Shredio\RapidDatabaseOperations\Trait\ExecuteMethod;
 
 /**
  * @template T of object
@@ -11,6 +12,8 @@ use InvalidArgumentException;
  */
 abstract class BaseRapidUpdater extends BaseRapidOperation implements RapidUpdater
 {
+
+	use ExecuteMethod;
 
 	protected string $sql = '';
 
@@ -47,18 +50,6 @@ abstract class BaseRapidUpdater extends BaseRapidOperation implements RapidUpdat
 		$this->sql .= sprintf("UPDATE %s SET %s WHERE %s;\n", $this->table, $this->buildSet($values), $this->buildAndWhere($conditions));
 
 		return $this;
-	}
-
-	final public function execute(): void
-	{
-		$sql = $this->getSql();
-
-		if ($sql === '') {
-			return;
-		}
-
-		$this->executeSql($sql);
-		$this->reset();
 	}
 
 	public function getSql(): string
@@ -120,10 +111,5 @@ abstract class BaseRapidUpdater extends BaseRapidOperation implements RapidUpdat
 	{
 		return $this->escaper->escapeColumn($this->mapFieldToColumn($field));
 	}
-
-	/**
-	 * @param non-empty-string $sql
-	 */
-	abstract protected function executeSql(string $sql): void;
 
 }

@@ -5,6 +5,7 @@ namespace Shredio\RapidDatabaseOperations;
 use InvalidArgumentException;
 use LogicException;
 use Shredio\RapidDatabaseOperations\Platform\RapidOperationPlatform;
+use Shredio\RapidDatabaseOperations\Trait\ExecuteMethod;
 
 /**
  * @template T of object
@@ -13,6 +14,8 @@ use Shredio\RapidDatabaseOperations\Platform\RapidOperationPlatform;
  */
 abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInserter
 {
+
+	use ExecuteMethod;
 
 	public const string ColumnsToUpdate = 'columnsToUpdate';
 	public const string Mode = 'mode';
@@ -69,18 +72,6 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 		$this->sql .= $this->buildValues($values) . ",\n";
 
 		return $this;
-	}
-
-	public function execute(): void
-	{
-		$sql = $this->getSql();
-
-		if ($sql === '') {
-			return;
-		}
-
-		$this->executeSql($sql);
-		$this->reset();
 	}
 
 	public function getSql(): string
@@ -216,10 +207,5 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 	{
 		return $this->escaper->escapeColumn($this->mapFieldToColumn($field));
 	}
-
-	/**
-	 * @param non-empty-string $sql
-	 */
-	abstract protected function executeSql(string $sql): void;
 
 }

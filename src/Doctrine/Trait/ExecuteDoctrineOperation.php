@@ -5,9 +5,11 @@ namespace Shredio\RapidDatabaseOperations\Doctrine\Trait;
 trait ExecuteDoctrineOperation
 {
 
-	protected function executeSql(string $sql): void
+	protected function executeSql(string $sql): int
 	{
-		$this->em->getConnection()->executeStatement($sql);
+		$rows = $this->em->getConnection()->executeStatement($sql);
+
+		return (int) $rows;
 	}
 
 }

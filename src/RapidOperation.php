@@ -28,7 +28,7 @@ interface RapidOperation
 	 * Executes the database operation.
 	 * Performs the actual INSERT, UPDATE, or other SQL operation.
 	 */
-	public function execute(): void;
+	public function execute(): int;
 
 	/**
 	 * Returns the generated SQL query string.
