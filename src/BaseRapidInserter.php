@@ -50,7 +50,7 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 	)
 	{
 		$this->table = $this->escaper->escapeColumn($table);
-		$this->columnsToUpdate = $options[self::ColumnsToUpdate] ?? [];
+		$this->columnsToUpdate = $options[self::ColumnsToUpdate] ?? []; // @phpstan-ignore assign.propertyType
 		$this->mode = $options[self::Mode] ?? self::ModeNormal;
 	}
 
