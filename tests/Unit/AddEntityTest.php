@@ -44,4 +44,16 @@ final class AddEntityTest extends TestCase
 		$this->assertTrue($em->isUninitializedObject($reference));
 	}
 
+	public function testAssociationOwnReferences(): void
+	{
+		$inserter = new DoctrineRapidInserter(User::class, $em = $this->createEntityManager('sqlite'), $this->createClassMetadataProvider($em));
+		$user = new User(1, 'John Doe', 'john.doe@example.com');
+		$user->setFavoriteArticle($reference = $inserter->createEntityReference(Article::class, 1));
+
+		$inserter->addEntity($user);
+
+		$this->assertSame("INSERT INTO `users` (`id`, `name`, `email`, `favorite_article_id`) VALUES ('1', 'John Doe', 'john.doe@example.com', '1');", $inserter->getSql());
+		$this->assertTrue($em->isUninitializedObject($reference));
+	}
+
 }

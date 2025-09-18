@@ -25,6 +25,16 @@ interface RapidOperation
 	public function addEntity(object $entity): static;
 
 	/**
+	 * Creates a reference to an entity of the given class with the specified identifier.
+	 * The reference is a proxy object that represents the entity without loading it from the database.
+	 * @template TClassName of object
+	 *
+	 * @param class-string<TClassName> $className
+	 * @return TClassName
+	 */
+	public function createEntityReference(string $className, mixed $id): object;
+
+	/**
 	 * Executes the database operation.
 	 * Performs the actual INSERT, UPDATE, or other SQL operation.
 	 */

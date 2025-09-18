@@ -2,6 +2,7 @@
 
 namespace Shredio\RapidDatabaseOperations\Trait;
 
+use Shredio\RapidDatabaseOperations\Exception\InvalidEntityReferenceException;
 use Shredio\RapidDatabaseOperations\Helper\EntityValuesExtractor;
 
 /**
@@ -28,6 +29,19 @@ trait AddEntityMethod
 		$this->addRaw($this->_entityValuesExtractor->extract($entity));
 
 		return $this;
+	}
+
+	public function createEntityReference(string $className, mixed $id): object
+	{
+		$reference = $this->em->getReference($className, $id);
+		if ($reference === null) {
+			throw new InvalidEntityReferenceException(sprintf(
+				'Could not create reference to entity of class %s.',
+				$className,
+			));
+		}
+
+		return $reference;
 	}
 
 }

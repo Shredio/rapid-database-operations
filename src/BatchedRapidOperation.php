@@ -2,6 +2,8 @@
 
 namespace Shredio\RapidDatabaseOperations;
 
+use Shredio\RapidDatabaseOperations\Exception\InvalidEntityReferenceException;
+
 /**
  * @template T of object
  * @implements RapidOperation<T>
@@ -42,6 +44,11 @@ final class BatchedRapidOperation extends BaseRapidOperation implements RapidOpe
 		$this->increment();
 
 		return $this;
+	}
+
+	public function createEntityReference(string $className, mixed $id): object
+	{
+		return $this->operation->createEntityReference($className, $id);
 	}
 
 	/**
