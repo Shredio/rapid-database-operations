@@ -11,12 +11,11 @@ trait ExecuteMethod
 	final public function execute(): int
 	{
 		$sql = $this->getSql();
-
 		if ($sql === '') {
 			return 0;
 		}
 
-		$count = $this->executeSql($sql);
+		$count = $this->executeSql($this->getPlatform()->transaction($sql));
 		$this->reset();
 
 		return $count;

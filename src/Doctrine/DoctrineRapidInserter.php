@@ -10,6 +10,7 @@ use Shredio\RapidDatabaseOperations\BaseRapidInserter;
 use Shredio\RapidDatabaseOperations\Metadata\ClassMetadataProvider;
 use Shredio\RapidDatabaseOperations\Platform\RapidOperationPlatform;
 use Shredio\RapidDatabaseOperations\Trait\AddEntityMethod;
+use Shredio\RapidDatabaseOperations\Trait\GetPlatformMethod;
 
 /**
  * @template T of object
@@ -20,13 +21,12 @@ final class DoctrineRapidInserter extends BaseRapidInserter
 
 	use ExecuteDoctrineOperation;
 	use MapDoctrineColumn;
+	use GetPlatformMethod;
 	/** @use AddEntityMethod<T> */
 	use AddEntityMethod;
 
 	/** @var ClassMetadata<object> */
 	private readonly ClassMetadata $metadata;
-
-	private ?RapidOperationPlatform $platform = null;
 
 	/**
 	 * @param class-string<T> $entity

@@ -10,6 +10,14 @@ interface RapidOperationPlatform
 {
 
 	/**
+	 * Wraps the given SQL statement in a transaction.
+	 *
+	 * @param non-empty-string $sql The SQL statement to be executed within a transaction
+	 * @return non-empty-string The SQL statement wrapped in a transaction
+	 */
+	public function transaction(string $sql): string;
+
+	/**
 	 * Generates SQL clause for ignoring conflicts on duplicate keys.
 	 * Typically produces "ON DUPLICATE KEY ... DO NOTHING" or equivalent.
 	 *

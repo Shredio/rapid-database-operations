@@ -9,6 +9,7 @@ use Shredio\RapidDatabaseOperations\Doctrine\Trait\MapDoctrineColumn;
 use Shredio\RapidDatabaseOperations\BaseRapidUpdater;
 use Shredio\RapidDatabaseOperations\Metadata\ClassMetadataProvider;
 use Shredio\RapidDatabaseOperations\Trait\AddEntityMethod;
+use Shredio\RapidDatabaseOperations\Trait\GetPlatformMethod;
 
 /**
  * @template T of object
@@ -19,6 +20,7 @@ final class DoctrineRapidUpdater extends BaseRapidUpdater
 
 	use ExecuteDoctrineOperation;
 	use MapDoctrineColumn;
+	use GetPlatformMethod;
 	/** @use AddEntityMethod<T> */
 	use AddEntityMethod;
 

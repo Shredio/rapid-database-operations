@@ -3,6 +3,7 @@
 namespace Shredio\RapidDatabaseOperations;
 
 use InvalidArgumentException;
+use Shredio\RapidDatabaseOperations\Platform\RapidOperationPlatform;
 use Shredio\RapidDatabaseOperations\Trait\ExecuteMethod;
 
 /**
@@ -33,6 +34,8 @@ abstract class BaseRapidUpdater extends BaseRapidOperation implements RapidUpdat
 	{
 		$this->table = $this->escaper->escapeColumn($table);
 	}
+
+	abstract protected function getPlatform(): RapidOperationPlatform;
 
 	public function addRaw(array $values): static
 	{
