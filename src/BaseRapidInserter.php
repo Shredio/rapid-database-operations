@@ -56,6 +56,11 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 
 	abstract protected function getPlatform(): RapidOperationPlatform;
 
+	protected function shouldBeTransactional(): bool
+	{
+		return false;
+	}
+
 	public function addRaw(array $values): static
 	{
 		return $this->add(new OperationArrayValues($values));

@@ -5,11 +5,6 @@ namespace Shredio\RapidDatabaseOperations\Platform;
 final class MysqlRapidOperationPlatform implements RapidOperationPlatform
 {
 
-	public function transaction(string $sql): string
-	{
-		return "START TRANSACTION;\n" . $sql . "\nCOMMIT;";
-	}
-
 	/**
 	 * @param non-empty-list<string> $idColumns
 	 */

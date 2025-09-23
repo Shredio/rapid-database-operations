@@ -37,6 +37,11 @@ abstract class BaseRapidUpdater extends BaseRapidOperation implements RapidUpdat
 
 	abstract protected function getPlatform(): RapidOperationPlatform;
 
+	protected function shouldBeTransactional(): bool
+	{
+		return true;
+	}
+
 	public function addRaw(array $values): static
 	{
 		return $this->add(new OperationArrayValues($values));

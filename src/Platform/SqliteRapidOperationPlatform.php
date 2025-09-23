@@ -5,11 +5,6 @@ namespace Shredio\RapidDatabaseOperations\Platform;
 final class SqliteRapidOperationPlatform implements RapidOperationPlatform
 {
 
-	public function transaction(string $sql): string
-	{
-		return "BEGIN TRANSACTION;\n" . $sql . "\nCOMMIT;";
-	}
-
 	/**
 	 * @param non-empty-list<string> $idColumns
 	 */

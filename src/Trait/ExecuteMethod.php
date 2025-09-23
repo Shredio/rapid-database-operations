@@ -15,7 +15,7 @@ trait ExecuteMethod
 			return 0;
 		}
 
-		$count = $this->executeSql($this->getPlatform()->transaction($sql));
+		$count = $this->executeSql($sql);
 		$this->reset();
 
 		return $count;
@@ -25,5 +25,7 @@ trait ExecuteMethod
 	 * @param non-empty-string $sql
 	 */
 	abstract protected function executeSql(string $sql): int;
+
+	abstract protected function shouldBeTransactional(): bool;
 
 }
