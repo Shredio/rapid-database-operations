@@ -5,8 +5,12 @@ namespace Tests\Unit;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
+use Shredio\RapidDatabaseOperations\Doctrine\DoctrineRapidInserter;
 use Shredio\RapidDatabaseOperations\Doctrine\DoctrineRapidUpdater;
+use Shredio\RapidDatabaseOperations\Metadata\ClassMetadataProvider;
+use Tests\Common\DoctrineContext;
 use Tests\Common\RapidEnvironment;
+use Tests\Common\TestManagerRegistry;
 use Tests\Unit\Entity\Article;
 use Tests\Unit\Entity\Post;
 
@@ -14,6 +18,7 @@ final class RapidUpdaterTest extends TestCase
 {
 
 	use RapidEnvironment;
+	use DoctrineContext;
 
 	#[TestWith(['mysql'])]
 	#[TestWith(['sqlite'])]
@@ -100,6 +105,37 @@ final class RapidUpdaterTest extends TestCase
 		]);
 
 		$this->assertSame("UPDATE `articles` SET `title` = 'foo' WHERE `id` = '1';", $updater->getSql());
+	}
+
+	public function testLargeUpdate(): void
+	{
+		$em = $this->getEntityManager();
+		$metadataProvider = new ClassMetadataProvider(new TestManagerRegistry($em));
+
+		$updater = new DoctrineRapidUpdater(Article::class, ['id'], $em, $metadataProvider);
+		$inserter = new DoctrineRapidInserter(Article::class, $em, $metadataProvider);
+
+		$expected = 1000;
+		for ($i = 1; $i <= ($expected + 100); $i++) {
+			$inserter->addRaw([
+				'id' => $i,
+				'title' => 'Title ' . $i,
+				'content' => 'Content ' . $i,
+			]);
+		}
+		$inserter->execute();
+
+		for ($i = 1; $i <= $expected; $i++) {
+			$updater->addRaw([
+				'id' => $i,
+				'title' => 'Updated Title ' . $i,
+				'content' => 'Updated Content ' . $i,
+			]);
+		}
+
+		$this->assertSame(1, $updater->execute());
+		$count = $em->getConnection()->executeQuery('SELECT COUNT(*) FROM articles')->fetchFirstColumn()[0] ?? null;
+		$this->assertSame($expected + 100, $count);
 	}
 
 }

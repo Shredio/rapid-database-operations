@@ -7,7 +7,10 @@ use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 use Shredio\RapidDatabaseOperations\Doctrine\DoctrineRapidInserter;
+use Shredio\RapidDatabaseOperations\Metadata\ClassMetadataProvider;
+use Tests\Common\DoctrineContext;
 use Tests\Common\RapidEnvironment;
+use Tests\Common\TestManagerRegistry;
 use Tests\Unit\Entity\Article;
 use Tests\Unit\Entity\Post;
 
@@ -15,6 +18,7 @@ final class RapidInserterTest extends TestCase
 {
 
 	use RapidEnvironment;
+	use DoctrineContext;
 
 	#[TestWith(['mysql'])]
 	#[TestWith(['sqlite'])]
@@ -191,6 +195,28 @@ final class RapidInserterTest extends TestCase
 			'id' => 2,
 			'content' => 'qux',
 		]);
+	}
+
+	public function testLargeInsert(): void
+	{
+		$inserter = new DoctrineRapidInserter(
+			Article::class,
+			$em = $this->getEntityManager(),
+			new ClassMetadataProvider(new TestManagerRegistry($em)),
+		);
+
+		$expected = 1000;
+		for ($i = 1; $i <= $expected; $i++) {
+			$inserter->addRaw([
+				'id' => $i,
+				'title' => 'Title ' . $i,
+				'content' => 'Content ' . $i,
+			]);
+		}
+
+		$this->assertSame($expected, $inserter->execute());
+		$count = $em->getConnection()->executeQuery('SELECT COUNT(*) FROM articles')->fetchFirstColumn()[0] ?? null;
+		$this->assertSame($expected, $count);
 	}
 
 }
