@@ -21,7 +21,7 @@ final class BatchedRapidOperation extends BaseRapidOperation implements RapidOpe
 
 	/**
 	 * @param RapidOperation<T> $operation
-	 * @param int $size The number of operations to batch before executing
+	 * @param int<1, max> $size The number of operations to batch before executing
 	 */
 	public function __construct(
 		private readonly RapidOperation $operation,

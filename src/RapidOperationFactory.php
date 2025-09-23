@@ -10,6 +10,17 @@ interface RapidOperationFactory
 {
 
 	/**
+	 * Wraps an existing RapidOperation to execute it in batches.
+	 * Useful for handling large datasets without overwhelming the database.
+	 *
+	 * @template T of object
+	 * @param RapidOperation<T> $operation The operation to be batched
+	 * @param int<1, max> $size The number of records to process in each batch
+	 * @return RapidOperation<T> A new RapidOperation that executes the original operation in batches
+	 */
+	public function batched(RapidOperation $operation, int $size): RapidOperation;
+
+	/**
 	 * Creates a new temporary table,
 	 * then inserts values into it, then updates existing values in the target table based on the temporary table.
 	 * More efficient than a regular update for large datasets.

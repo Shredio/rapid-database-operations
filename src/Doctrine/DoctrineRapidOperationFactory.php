@@ -4,7 +4,9 @@ namespace Shredio\RapidDatabaseOperations\Doctrine;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Shredio\RapidDatabaseOperations\BatchedRapidOperation;
 use Shredio\RapidDatabaseOperations\Metadata\ClassMetadataProvider;
+use Shredio\RapidDatabaseOperations\RapidOperation;
 use Shredio\RapidDatabaseOperations\RapidOperationFactory;
 use Shredio\RapidDatabaseOperations\RapidInserter;
 use Shredio\RapidDatabaseOperations\RapidUpdater;
@@ -16,6 +18,17 @@ final readonly class DoctrineRapidOperationFactory implements RapidOperationFact
 		private ManagerRegistry $registry,
 	)
 	{
+	}
+
+	/**
+	 * @template T of object
+	 * @param RapidOperation<T> $operation The operation to be batched
+	 * @param int<1, max> $size The number of records to process in each batch
+	 * @return RapidOperation<T> A new RapidOperation that executes the original operation in batches
+	 */
+	public function batched(RapidOperation $operation, int $size): RapidOperation
+	{
+		return new BatchedRapidOperation($operation, $size);
 	}
 
 	/**
