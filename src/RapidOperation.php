@@ -37,6 +37,8 @@ interface RapidOperation
 	/**
 	 * Executes the database operation.
 	 * Performs the actual INSERT, UPDATE, or other SQL operation.
+	 *
+	 * @return int<0, max> Number of affected rows
 	 */
 	public function execute(): int;
 

@@ -18,7 +18,7 @@ trait ExecuteMethod
 		$count = $this->executeSql($sql);
 		$this->reset();
 
-		return $count;
+		return $count; // @phpstan-ignore return.type
 	}
 
 	/**

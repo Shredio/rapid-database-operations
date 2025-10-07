@@ -15,8 +15,10 @@ final class BatchedRapidOperation extends BaseRapidOperation implements RapidOpe
 	/** @var int<0, max> */
 	private int $count = 0;
 
+	/** @var int<0, max> */
 	private int $itemCountInBatch = 0;
 
+	/** @var int<0, max> */
 	private int $executedItemCount = 0;
 
 	/**
