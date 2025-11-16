@@ -66,13 +66,15 @@ final class DoctrineRapidInserter extends BaseRapidInserter
 	 */
 	protected function filterFieldsToUpdate(array $fields): array
 	{
-		$filtered = array_diff($fields, $this->metadata->getIdentifierFieldNames());
+		return array_diff($fields, $this->metadata->getIdentifierFieldNames());
+	}
 
-		if (!$filtered) {
-			return $fields;
-		}
-
-		return $filtered;
+	/**
+	 * @return string[]
+	 */
+	protected function getDefaultFieldsToUpdate(): array
+	{
+		return [$this->metadata->getIdentifierFieldNames()[0]];
 	}
 
 }

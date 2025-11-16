@@ -5,6 +5,7 @@ namespace Shredio\RapidDatabaseOperations;
 use InvalidArgumentException;
 use LogicException;
 use Shredio\RapidDatabaseOperations\Platform\RapidOperationPlatform;
+use Shredio\RapidDatabaseOperations\Selection\FieldExclusion;
 use Shredio\RapidDatabaseOperations\Trait\ExecuteMethod;
 
 /**
@@ -32,8 +33,8 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 
 	protected readonly string $table;
 
-	/** @var string[] */
-	protected array $columnsToUpdate = [];
+	/** @var string[]|FieldExclusion */
+	protected array|FieldExclusion $columnsToUpdate = [];
 
 	/** @var string[] */
 	private array $required = [];
@@ -103,6 +104,11 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 		return $fields;
 	}
 
+	/**
+	 * @return string[]
+	 */
+	abstract protected function getDefaultFieldsToUpdate(): array;
+
 	private function sqlForStart(OperationValues $values): string
 	{
 		$this->required = $keys = $values->keys();
@@ -117,15 +123,9 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 	private function sqlForEnd(): string
 	{
 		if ($this->mode === self::ModeUpsert) {
-			if ($this->columnsToUpdate) {
-				$columns = $this->columnsToUpdate;
-			} else {
-				$columns = $this->filterFieldsToUpdate($this->required);
-			}
-
 			$columns = array_map(
 				$this->resolveField(...),
-				$columns,
+				$this->getFieldsToUpdate(),
 			);
 
 			$sql = $this->getPlatform()->onConflictUpdate($this->getEscapedIdColumns(), $columns);
@@ -138,6 +138,31 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 		}
 
 		return '';
+	}
+
+	/**
+	 * @return string[]
+	 */
+	private function getFieldsToUpdate(): array
+	{
+		$fields = $this->_getFieldsToUpdate();
+		return $fields === [] ? $this->getDefaultFieldsToUpdate() : $fields;
+	}
+
+	/**
+	 * @return string[]
+	 */
+	private function _getFieldsToUpdate(): array
+	{
+		if ($this->columnsToUpdate === []) {
+			return $this->filterFieldsToUpdate($this->required);
+		}
+
+		if (is_array($this->columnsToUpdate)) {
+			return $this->columnsToUpdate;
+		}
+
+		return $this->columnsToUpdate->getFields($this->filterFieldsToUpdate($this->required));
 	}
 
 	/**

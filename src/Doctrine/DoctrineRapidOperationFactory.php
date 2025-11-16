@@ -10,6 +10,7 @@ use Shredio\RapidDatabaseOperations\RapidOperation;
 use Shredio\RapidDatabaseOperations\RapidOperationFactory;
 use Shredio\RapidDatabaseOperations\RapidInserter;
 use Shredio\RapidDatabaseOperations\RapidUpdater;
+use Shredio\RapidDatabaseOperations\Selection\FieldExclusion;
 
 final readonly class DoctrineRapidOperationFactory implements RapidOperationFactory
 {
@@ -56,10 +57,10 @@ final readonly class DoctrineRapidOperationFactory implements RapidOperationFact
 	/**
 	 * @template T of object
 	 * @param class-string<T> $entity
-	 * @param string[] $fieldsToUpdate
+	 * @param string[]|FieldExclusion $fieldsToUpdate
 	 * @return RapidInserter<T>
 	 */
-	public function createUpsert(string $entity, array $fieldsToUpdate = []): RapidInserter
+	public function createUpsert(string $entity, array|FieldExclusion $fieldsToUpdate = []): RapidInserter
 	{
 		return new DoctrineRapidInserter($entity, $this->getEntityManager($entity), new ClassMetadataProvider($this->registry), [
 			DoctrineRapidInserter::ColumnsToUpdate => $fieldsToUpdate,
