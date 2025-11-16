@@ -2,6 +2,8 @@
 
 namespace Shredio\RapidDatabaseOperations;
 
+use Shredio\RapidDatabaseOperations\Selection\FieldExclusion;
+
 /**
  * Factory interface for creating rapid database operations.
  * Provides methods to create various types of database operations like inserts, updates, and upserts.
@@ -49,10 +51,10 @@ interface RapidOperationFactory
 	 *
 	 * @template T of object
 	 * @param class-string<T> $entity The entity class to upsert
-	 * @param string[] $fieldsToUpdate Array of field names to update on conflict (empty array means all fields)
+	 * @param string[]|FieldExclusion $fieldsToUpdate Array of field names to update on conflict (empty array means all fields)
 	 * @return RapidInserter<T>
 	 */
-	public function createUpsert(string $entity, array $fieldsToUpdate = []): RapidInserter;
+	public function createUpsert(string $entity, array|FieldExclusion $fieldsToUpdate = []): RapidInserter;
 
 	/**
 	 * Inserts new values into the database.
