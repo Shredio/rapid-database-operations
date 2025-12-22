@@ -22,13 +22,18 @@ final readonly class DefaultOperationEscaper implements OperationEscaper
 		$this->escape = $escape;
 	}
 
-	public function escapeValue(mixed $value): string
+	public function escapeColumnValue(mixed $value, string $column): string
+	{
+		return $this->escapeValue($value);
+	}
+
+	public function escapeValue(mixed $value, ?int $type = null): string
 	{
 		if ($value === null) {
 			return 'NULL';
 		}
 
-		$type = $this->detectType($value);
+		$type ??= $this->detectType($value);
 
 		if ($value instanceof DateTimeInterface) {
 			$value = $value->format('Y-m-d H:i:s');

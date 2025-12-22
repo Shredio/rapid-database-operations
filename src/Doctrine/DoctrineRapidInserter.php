@@ -47,7 +47,7 @@ final class DoctrineRapidInserter extends BaseRapidInserter
 
 		parent::__construct(
 			$tableName,
-			new DoctrineOperationEscaper($this->em),
+			new DoctrineOperationEscaper($this->em, $this->metadata),
 			$this->metadata->getIdentifierColumnNames(),
 			$options,
 		);

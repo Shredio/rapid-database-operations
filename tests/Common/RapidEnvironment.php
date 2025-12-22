@@ -5,6 +5,7 @@ namespace Tests\Common;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Platforms\SQLitePlatform;
+use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMSetup;
@@ -16,6 +17,7 @@ trait RapidEnvironment
 
 	private function createEntityManager(?string $platform = null): EntityManager
 	{
+		$this->registerTypes();
 		$platform ??= $this->getDefaultPlatform();
 
 		$configuration = ORMSetup::createAttributeMetadataConfiguration([__DIR__ . '/../Unit/Entity'], true);
@@ -43,6 +45,13 @@ trait RapidEnvironment
 	private function getDefaultPlatform(): string
 	{
 		return 'mysql';
+	}
+
+	private function registerTypes(): void
+	{
+		if (!Type::hasType(IntValueObject::class)) {
+			Type::addType(IntValueObject::class, IntValueObjectType::class);
+		}
 	}
 
 }

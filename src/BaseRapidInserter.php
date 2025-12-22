@@ -220,10 +220,12 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 
 	protected function buildValues(OperationValues $values): string
 	{
-		return sprintf(
-			'(%s)',
-			implode(', ', array_map(fn (mixed $value) => $this->escaper->escapeValue($value), $values->all())),
-		);
+		$vals = [];
+		foreach ($values->all() as $column => $value) {
+			$vals[] = $this->escaper->escapeColumnValue($value, $column);
+		}
+
+		return sprintf('(%s)', implode(', ', $vals));
 	}
 
 	protected function reset(): void

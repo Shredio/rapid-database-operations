@@ -74,7 +74,7 @@ abstract class BaseRapidUpdater extends BaseRapidOperation implements RapidUpdat
 		$sql = '';
 
 		foreach ($values->all() as $column => $value) {
-			$sql .= sprintf('%s = %s, ', $this->resolveField($column), $this->escaper->escapeValue($value));
+			$sql .= sprintf('%s = %s, ', $this->resolveField($column), $this->escaper->escapeColumnValue($value, $column));
 		}
 
 		return substr($sql, 0, -2);
@@ -88,7 +88,7 @@ abstract class BaseRapidUpdater extends BaseRapidOperation implements RapidUpdat
 		$sql = '';
 
 		foreach ($conditions as $column => $value) {
-			$sql .= sprintf('%s = %s AND ', $this->resolveField($column), $this->escaper->escapeValue($value));
+			$sql .= sprintf('%s = %s AND ', $this->resolveField($column), $this->escaper->escapeColumnValue($value, $column));
 		}
 
 		return substr($sql, 0, -5);

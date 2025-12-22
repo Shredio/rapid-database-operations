@@ -42,7 +42,7 @@ final class DoctrineRapidBigUpdater extends BaseRapidBigUpdater
 	{
 		$this->metadata = $this->em->getClassMetadata($entity);
 
-		parent::__construct($this->metadata->getTableName(), $conditions, new DoctrineOperationEscaper($this->em));
+		parent::__construct($this->metadata->getTableName(), $conditions, new DoctrineOperationEscaper($this->em, $this->metadata));
 	}
 
 	/**
