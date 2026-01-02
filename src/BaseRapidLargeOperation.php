@@ -83,9 +83,16 @@ abstract class BaseRapidLargeOperation extends BaseRapidOperation
 				'UPDATE %s orig INNER JOIN %s tmp ON %s SET %s;',
 				$this->table,
 				$this->temporaryTable,
-				$this->buildNestedWhere($schema->columnsToMatch, 'orig', 'tmp'),
-				$this->buildSetForArray($schema->columnsToUpdate, 'orig', 'tmp'),
+				$on = $this->buildNestedWhere($schema->columnsToMatch, 'orig', 'tmp'),
+				$set = $this->buildSetForArray($schema->columnsToUpdate, 'orig', 'tmp'),
 			);
+
+			if ($on === '') {
+				throw new LogicException('At least one unique condition must be defined for update operation.');
+			}
+			if ($set === '') {
+				throw new LogicException('At least one column must be defined for update operation.');
+			}
 		}
 
 		if ($this->operationType->hasInsert()) {
@@ -96,8 +103,12 @@ abstract class BaseRapidLargeOperation extends BaseRapidOperation
 				$inlineColumns,
 				$this->temporaryTable,
 				$this->table,
-				$this->buildNestedWhere($schema->columnsToMatch, 'orig', 'tmp'),
+				$where = $this->buildNestedWhere($schema->columnsToMatch, 'orig', 'tmp'),
 			);
+
+			if ($where === '') {
+				throw new LogicException('At least one unique condition must be defined for insert operation.');
+			}
 		}
 
 		$sqlCollection[] = $schema->dropSql;
