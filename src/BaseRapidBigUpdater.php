@@ -24,7 +24,7 @@ abstract class BaseRapidBigUpdater extends BaseRapidUpdater
 	{
 		parent::__construct($table, $conditions, $escaper);
 
-		$this->temporaryTable = $escaper->escapeColumn('_' . $table . '_tmp');
+		$this->temporaryTable = $escaper->escapeColumn('_' . $table . '_tmp_' . bin2hex(random_bytes(5)));
 		$this->inserter = $this->createInserter();
 	}
 

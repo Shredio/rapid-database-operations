@@ -5,7 +5,10 @@ namespace Shredio\RapidDatabaseOperations;
 use InvalidArgumentException;
 use LogicException;
 use Shredio\RapidDatabaseOperations\Platform\RapidOperationPlatform;
+use Shredio\RapidDatabaseOperations\Selection\AllFields;
 use Shredio\RapidDatabaseOperations\Selection\FieldExclusion;
+use Shredio\RapidDatabaseOperations\Selection\FieldInclusion;
+use Shredio\RapidDatabaseOperations\Selection\FieldSelection;
 use Shredio\RapidDatabaseOperations\Trait\ExecuteMethod;
 
 /**
@@ -33,8 +36,7 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 
 	protected readonly string $table;
 
-	/** @var string[]|FieldExclusion */
-	protected array|FieldExclusion $columnsToUpdate = [];
+	protected FieldSelection $columnsToUpdate;
 
 	/** @var string[] */
 	private array $required = [];
@@ -51,7 +53,12 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 	)
 	{
 		$this->table = $this->escaper->escapeColumn($table);
-		$this->columnsToUpdate = $options[self::ColumnsToUpdate] ?? []; // @phpstan-ignore assign.propertyType
+		if (isset($options[self::ColumnsToUpdate])) {
+			$this->columnsToUpdate = is_array($options[self::ColumnsToUpdate]) ? new FieldInclusion($options[self::ColumnsToUpdate]) : $options[self::ColumnsToUpdate]; // @phpstan-ignore-line
+		} else {
+			$this->columnsToUpdate = new AllFields();
+		}
+
 		$this->mode = $options[self::Mode] ?? self::ModeNormal;
 	}
 
@@ -154,12 +161,8 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 	 */
 	private function _getFieldsToUpdate(): array
 	{
-		if ($this->columnsToUpdate === []) {
+		if ($this->columnsToUpdate instanceof AllFields) {
 			return $this->filterFieldsToUpdate($this->required);
-		}
-
-		if (is_array($this->columnsToUpdate)) {
-			return $this->columnsToUpdate;
 		}
 
 		return $this->columnsToUpdate->getFields($this->filterFieldsToUpdate($this->required));

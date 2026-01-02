@@ -4,7 +4,7 @@ namespace Shredio\RapidDatabaseOperations\Selection;
 
 use InvalidArgumentException;
 
-final readonly class FieldExclusion
+final readonly class FieldExclusion implements FieldSelection
 {
 
 	/** @var array<non-empty-string, true> */

@@ -5,12 +5,16 @@ namespace Shredio\RapidDatabaseOperations\Doctrine;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Shredio\RapidDatabaseOperations\BatchedRapidOperation;
+use Shredio\RapidDatabaseOperations\Enum\OperationType;
 use Shredio\RapidDatabaseOperations\Metadata\ClassMetadataProvider;
 use Shredio\RapidDatabaseOperations\RapidOperation;
 use Shredio\RapidDatabaseOperations\RapidOperationFactory;
 use Shredio\RapidDatabaseOperations\RapidInserter;
 use Shredio\RapidDatabaseOperations\RapidUpdater;
+use Shredio\RapidDatabaseOperations\Selection\AllFields;
 use Shredio\RapidDatabaseOperations\Selection\FieldExclusion;
+use Shredio\RapidDatabaseOperations\Selection\FieldInclusion;
+use Shredio\RapidDatabaseOperations\Selection\FieldSelection;
 
 final readonly class DoctrineRapidOperationFactory implements RapidOperationFactory
 {
@@ -33,6 +37,8 @@ final readonly class DoctrineRapidOperationFactory implements RapidOperationFact
 	}
 
 	/**
+	 * @deprecated Use createLargeUpdate() instead.
+	 *
 	 * @template T of object
 	 * @param class-string<T> $entity
 	 * @param string[] $conditions
@@ -57,10 +63,10 @@ final readonly class DoctrineRapidOperationFactory implements RapidOperationFact
 	/**
 	 * @template T of object
 	 * @param class-string<T> $entity
-	 * @param string[]|FieldExclusion $fieldsToUpdate
+	 * @param string[]|FieldSelection $fieldsToUpdate
 	 * @return RapidInserter<T>
 	 */
-	public function createUpsert(string $entity, array|FieldExclusion $fieldsToUpdate = []): RapidInserter
+	public function createUpsert(string $entity, array|FieldSelection $fieldsToUpdate = []): RapidInserter
 	{
 		return new DoctrineRapidInserter($entity, $this->getEntityManager($entity), new ClassMetadataProvider($this->registry), [
 			DoctrineRapidInserter::ColumnsToUpdate => $fieldsToUpdate,
@@ -88,6 +94,59 @@ final readonly class DoctrineRapidOperationFactory implements RapidOperationFact
 		return new DoctrineRapidInserter($entity, $this->getEntityManager($entity), new ClassMetadataProvider($this->registry), [
 			DoctrineRapidInserter::Mode => DoctrineRapidInserter::ModeInsertNonExisting,
 		]);
+	}
+
+	/**
+	 * @template T of object
+	 * @param class-string<T> $entity
+	 * @param non-empty-list<non-empty-string>|FieldSelection $fieldsToUpdate
+	 * @param list<non-empty-string> $fieldsToMatch
+	 * @return RapidOperation<T>
+	 */
+	public function createLargeUpdate(string $entity, array|FieldSelection $fieldsToUpdate = new AllFields(), array $fieldsToMatch = []): RapidOperation
+	{
+		return new DoctrineRapidLargeOperation(
+			$entity,
+			OperationType::Update,
+			$this->getEntityManager($entity),
+			new ClassMetadataProvider($this->registry),
+			is_array($fieldsToUpdate) ? new FieldInclusion($fieldsToUpdate) : $fieldsToUpdate,
+			$fieldsToMatch,
+		);
+	}
+
+	/**
+	 * @template T of object
+	 * @param class-string<T> $entity
+	 * @param non-empty-list<non-empty-string>|FieldSelection $fieldsToUpdate
+	 * @return RapidOperation<T>
+	 */
+	public function createLargeUpsert(string $entity, array|FieldSelection $fieldsToUpdate = new AllFields()): RapidOperation
+	{
+		return new DoctrineRapidLargeOperation(
+			$entity,
+			OperationType::Upsert,
+			$this->getEntityManager($entity),
+			new ClassMetadataProvider($this->registry),
+			is_array($fieldsToUpdate) ? new FieldInclusion($fieldsToUpdate) : $fieldsToUpdate,
+		);
+	}
+
+	/**
+	 * @template T of object
+	 * @param class-string<T> $entity
+	 * @param non-empty-list<non-empty-string>|FieldSelection $fieldsToUpdate
+	 * @return RapidOperation<T>
+	 */
+	public function createLargeUniqueInsert(string $entity, array|FieldSelection $fieldsToUpdate = new AllFields()): RapidOperation
+	{
+		return new DoctrineRapidLargeOperation(
+			$entity,
+			OperationType::Insert,
+			$this->getEntityManager($entity),
+			new ClassMetadataProvider($this->registry),
+			is_array($fieldsToUpdate) ? new FieldInclusion($fieldsToUpdate) : $fieldsToUpdate,
+		);
 	}
 
 	/**

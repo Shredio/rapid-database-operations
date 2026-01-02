@@ -17,7 +17,10 @@
 	},
 	"scripts": {
 		"phpstan": "phpstan analyse --memory-limit=-1",
-		"test": "vendor/bin/phpunit tests"
+		"test": "vendor/bin/phpunit tests",
+		"mysql:start": "docker run -d --name rapid-mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=test mysql:8.0.32",
+		"mysql:stop": "docker stop rapid-mysql && docker rm rapid-mysql",
+		"test:mysql": "DB_CONNECTION=mysql DB_DSN=pdo-mysql://root:root@127.0.0.1:3306/test vendor/bin/phpunit tests"
 	},
 	"require-dev": {
 		"phpstan/phpstan": "^2.1",
