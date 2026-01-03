@@ -96,7 +96,10 @@ final class DoctrineRapidLargeOperation extends BaseRapidLargeOperation
 
 		$builder = new TemporaryTableSchemaBuilder(
 			columns: $columnNames,
-			columnsToUpdate: $this->fieldsToUpdate->getFields($this->getFieldNames($this->metadata, false)),
+			columnsToUpdate: array_map(
+				fn (string $field): string => $this->mapFieldToColumn($field),
+				$this->fieldsToUpdate->getFields($this->getFieldNames($this->metadata, false)),
+			),
 			columnsToMatch: array_map(
 				fn (string $field): string => $this->mapFieldToColumn($field),
 				$this->fieldsToMatch,
