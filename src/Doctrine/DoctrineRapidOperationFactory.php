@@ -146,9 +146,15 @@ final readonly class DoctrineRapidOperationFactory implements RapidOperationFact
 	 * @param class-string<T> $entity
 	 * @param list<non-empty-string> $fieldsToMatch
 	 * @param non-empty-list<non-empty-string>|FieldSelection $fieldsToUpdate
+	 * @param array<non-empty-string, mixed> $options
 	 * @return RapidOperation<T>
 	 */
-	public function createLargeUpdate(string $entity, array $fieldsToMatch = [], array|FieldSelection $fieldsToUpdate = new AllFields()): RapidOperation
+	public function createLargeUpdate(
+		string $entity,
+		array $fieldsToMatch = [],
+		array|FieldSelection $fieldsToUpdate = new AllFields(),
+		array $options = [],
+	): RapidOperation
 	{
 		$em = $this->getEntityManager($entity);
 		$metadataProvider = new ClassMetadataProvider($this->registry);
@@ -172,9 +178,15 @@ final readonly class DoctrineRapidOperationFactory implements RapidOperationFact
 	 * @param class-string<T> $entity
 	 * @param non-empty-list<non-empty-string>|FieldSelection $fieldsToUpdate
 	 * @param list<non-empty-string> $fieldsToMatch
+	 * @param array<non-empty-string, mixed> $options
 	 * @return RapidOperation<T>
 	 */
-	public function createLargeUpsert(string $entity, array|FieldSelection $fieldsToUpdate = new AllFields(), array $fieldsToMatch = []): RapidOperation
+	public function createLargeUpsert(
+		string $entity,
+		array|FieldSelection $fieldsToUpdate = new AllFields(),
+		array $fieldsToMatch = [],
+		array $options = [],
+	): RapidOperation
 	{
 		$em = $this->getEntityManager($entity);
 		$metadataProvider = new ClassMetadataProvider($this->registry);

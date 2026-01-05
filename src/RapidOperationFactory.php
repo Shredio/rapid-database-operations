@@ -29,12 +29,12 @@ interface RapidOperationFactory
 	 * then inserts values into it, then updates existing values in the target table based on the temporary table.
 	 * More efficient than a regular update for large datasets.
 	 *
-	 * @deprecated Use createLargeUpdate() instead.
-	 *
-	 * @template T of object
 	 * @param class-string<T> $entity The entity class to update
 	 * @param string[] $conditions Array of field names used as conditions for matching records
 	 * @return RapidOperation<T>
+	 * @deprecated Use createLargeUpdate() instead.
+	 *
+	 * @template T of object
 	 */
 	public function createBigUpdate(string $entity, array $conditions): RapidOperation;
 
@@ -47,9 +47,15 @@ interface RapidOperationFactory
 	 * @param class-string<T> $entity The entity class to update
 	 * @param list<non-empty-string> $fieldsToMatch
 	 * @param non-empty-list<non-empty-string>|FieldSelection $fieldsToUpdate Array of field names to update (empty array means all fields)
+	 * @param array<non-empty-string, mixed> $options Additional options
 	 * @return RapidOperation<T>
 	 */
-	public function createLargeUpdate(string $entity, array $fieldsToMatch = [], array|FieldSelection $fieldsToUpdate = new AllFields()): RapidOperation;
+	public function createLargeUpdate(
+		string $entity,
+		array $fieldsToMatch = [],
+		array|FieldSelection $fieldsToUpdate = new AllFields(),
+		array $options = [],
+	): RapidOperation;
 
 	/**
 	 * Creates a new temporary table,
@@ -60,9 +66,15 @@ interface RapidOperationFactory
 	 * @param class-string<T> $entity The entity class to upsert
 	 * @param non-empty-list<non-empty-string>|FieldSelection $fieldsToUpdate Array of field names to update on conflict (empty array means all fields)
 	 * @param list<non-empty-string> $fieldsToMatch
+	 * @param array<non-empty-string, mixed> $options Additional options
 	 * @return RapidOperation<T>
 	 */
-	public function createLargeUpsert(string $entity, array|FieldSelection $fieldsToUpdate = new AllFields(), array $fieldsToMatch = []): RapidOperation;
+	public function createLargeUpsert(
+		string $entity,
+		array|FieldSelection $fieldsToUpdate = new AllFields(),
+		array $fieldsToMatch = [],
+		array $options = [],
+	): RapidOperation;
 
 	/**
 	 * Updates existing values in the database based on specified conditions.
