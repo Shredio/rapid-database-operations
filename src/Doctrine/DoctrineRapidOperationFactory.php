@@ -170,6 +170,7 @@ final readonly class DoctrineRapidOperationFactory implements RapidOperationFact
 			new RandomTemporaryTableNameGenerator(),
 			is_array($fieldsToUpdate) ? new FieldInclusion($fieldsToUpdate) : $fieldsToUpdate,
 			$fieldsToMatch,
+			options: $options,
 		);
 	}
 
@@ -202,6 +203,7 @@ final readonly class DoctrineRapidOperationFactory implements RapidOperationFact
 			new RandomTemporaryTableNameGenerator(),
 			is_array($fieldsToUpdate) ? new FieldInclusion($fieldsToUpdate) : $fieldsToUpdate,
 			$fieldsToMatch,
+			options: $options,
 		);
 	}
 
