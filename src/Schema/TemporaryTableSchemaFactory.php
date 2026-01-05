@@ -9,6 +9,6 @@ interface TemporaryTableSchemaFactory
 	 * @param list<string> $requiredColumns
 	 * @return array{string, string}
 	 */
-	public function create(array $requiredColumns, string $temporaryTableName, bool $allowDuplicates = false): array;
+	public function create(array $requiredColumns, string $temporaryTableName): array;
 
 }

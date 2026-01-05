@@ -95,23 +95,6 @@ final class LargeOperationTest extends TestCase
 		$operation->execute();
 	}
 
-	public function testUpsertIgnoreUniqueConstraints(): void
-	{
-		$firstEarnings = new Earnings('AAPL', new DateTimeImmutable('2020-01-01'));
-		$secondEarnings = new Earnings('AAPL', new DateTimeImmutable('2020-01-01'));
-
-		$operation = $this->createOperation(Earnings::class, OperationType::Upsert, allowDuplicates: true);
-
-		$operation->addEntity($firstEarnings);
-		$operation->addEntity($secondEarnings);
-
-		var_dump($operation->getSql());
-
-		$operation->execute();
-
-		$this->assertRecordCount(Earnings::class, 1);
-	}
-
 	public function testOnlyInsert(): void
 	{
 		$firstEarnings = new Earnings('AAPL', new DateTimeImmutable('2020-01-01'));
@@ -521,7 +504,6 @@ final class LargeOperationTest extends TestCase
 		OperationType $operationType,
 		FieldSelection $fieldsToUpdate = new AllFields(),
 		array $fieldsToMatch = [],
-		bool $allowDuplicates = false,
 	): DatabaseRapidLargeOperation
 	{
 		$em = $this->getEntityManager();
@@ -539,7 +521,6 @@ final class LargeOperationTest extends TestCase
 				new SuffixTemporaryTableNameGenerator('_tmp'),
 				$fieldsToUpdate,
 				$fieldsToMatch,
-				$allowDuplicates,
 			);
 		}
 
@@ -553,7 +534,6 @@ final class LargeOperationTest extends TestCase
 				new DoctrineTemporaryTableSchemaFactory($entity, $em),
 				DoctrineRapidOperationPlatformFactory::create($em->getConnection()->getDatabasePlatform()),
 				new SuffixTemporaryTableNameGenerator('_tmp'),
-				$allowDuplicates,
 			);
 		}
 
@@ -568,7 +548,6 @@ final class LargeOperationTest extends TestCase
 			new SuffixTemporaryTableNameGenerator('_tmp'),
 			$fieldsToUpdate,
 			$fieldsToMatch,
-			$allowDuplicates,
 		);
 	}
 

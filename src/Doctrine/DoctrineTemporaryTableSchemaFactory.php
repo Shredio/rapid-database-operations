@@ -45,9 +45,9 @@ final readonly class DoctrineTemporaryTableSchemaFactory implements TemporaryTab
 		return $this->execute($requiredColumns, $temporaryTableName, $additionalSchemaColumns, $indexes);
 	}
 
-	public function create(array $requiredColumns, string $temporaryTableName, bool $allowDuplicates = false): array
+	public function create(array $requiredColumns, string $temporaryTableName): array
 	{
-		return $this->execute($requiredColumns, $temporaryTableName, allowDuplicates: $allowDuplicates);
+		return $this->execute($requiredColumns, $temporaryTableName);
 	}
 
 	/**
@@ -56,7 +56,7 @@ final readonly class DoctrineTemporaryTableSchemaFactory implements TemporaryTab
 	 * @param list<Index>|null $indexesToSet
 	 * @return array{0: string, 1: string} SQL for create and drop temporary table
 	 */
-	private function execute(array $requiredColumns, string $temporaryTableName, array $additionalSchemaColumns = [], ?array $indexesToSet = null, bool $allowDuplicates = false): array
+	private function execute(array $requiredColumns, string $temporaryTableName, array $additionalSchemaColumns = [], ?array $indexesToSet = null): array
 	{
 		$platform = $this->em->getConnection()->getDatabasePlatform();
 		if (!$platform instanceof MySQLPlatform) {
@@ -78,8 +78,8 @@ final readonly class DoctrineTemporaryTableSchemaFactory implements TemporaryTab
 		}
 
 		if ($indexesToSet === null) {
-			$indexesToSet = $this->getIndexes($requiredColumns, $originalTableSchema, $allowDuplicates);
-			$uniqueConstraints = $allowDuplicates ? [] : $originalTableSchema->getUniqueConstraints();
+			$indexesToSet = $this->getIndexes($requiredColumns, $originalTableSchema);
+			$uniqueConstraints = $originalTableSchema->getUniqueConstraints();
 		} else {
 			$uniqueConstraints = [];
 		}
@@ -154,7 +154,7 @@ final readonly class DoctrineTemporaryTableSchemaFactory implements TemporaryTab
 	 * @param array<string> $requiredColumns
 	 * @return list<Index>
 	 */
-	private function getIndexes(array $requiredColumns, Table $tableSchema, bool $allowDuplicates): array
+	private function getIndexes(array $requiredColumns, Table $tableSchema): array
 	{
 		$indexes = [];
 
@@ -173,15 +173,6 @@ final readonly class DoctrineTemporaryTableSchemaFactory implements TemporaryTab
 					if (!in_array($columnName, $requiredColumns, true)) {
 						continue 2;
 					}
-				}
-
-				if ($allowDuplicates) {
-					$indexedColumns = $index->getIndexedColumns();
-					$index = Index::editor()
-						->setType(IndexType::REGULAR)
-						->setName($index->getObjectName())
-						->setColumns($indexedColumns[0], ...array_slice($indexedColumns, 1))
-						->create();
 				}
 
 				$indexes[] = $index;

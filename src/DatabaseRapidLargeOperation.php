@@ -46,7 +46,6 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 		TemporaryTableNameGenerator $temporaryTableNameGenerator = new RandomTemporaryTableNameGenerator(),
 		private readonly FieldSelection $fieldsToUpdate = new AllFields(),
 		private readonly array $fieldsToMatch = [],
-		private readonly bool $allowDuplicates = false,
 	)
 	{
 		parent::__construct($entity, $operationMetadata, $escaper, $executor, $entityReferenceFactory);
@@ -84,7 +83,6 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 		TemporaryTableNameGenerator $temporaryTableNameGenerator = new RandomTemporaryTableNameGenerator(),
 		FieldSelection $fieldsToUpdate = new AllFields(),
 		array $fieldsToMatch = [],
-		bool $allowDuplicates = false,
 	): self
 	{
 		return new self(
@@ -99,7 +97,6 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 			$temporaryTableNameGenerator,
 			$fieldsToUpdate,
 			$fieldsToMatch,
-			$allowDuplicates,
 		);
 	}
 
@@ -120,7 +117,6 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 		TemporaryTableNameGenerator $temporaryTableNameGenerator = new RandomTemporaryTableNameGenerator(),
 		FieldSelection $fieldsToUpdate = new AllFields(),
 		array $fieldsToMatch = [],
-		bool $allowDuplicates = false,
 	): self
 	{
 		return new self(
@@ -135,7 +131,6 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 			$temporaryTableNameGenerator,
 			$fieldsToUpdate,
 			$fieldsToMatch,
-			$allowDuplicates,
 		);
 	}
 
@@ -153,7 +148,6 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 		TemporaryTableSchemaFactory $temporaryTableSchemaFactory,
 		RapidOperationPlatform $platform,
 		TemporaryTableNameGenerator $temporaryTableNameGenerator = new RandomTemporaryTableNameGenerator(),
-		bool $allowDuplicates = false,
 	): self
 	{
 		return new self(
@@ -166,7 +160,6 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 			$platform,
 			OperationType::Insert,
 			$temporaryTableNameGenerator,
-			allowDuplicates: $allowDuplicates,
 		);
 	}
 
@@ -248,7 +241,7 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 			$this->operationMetadata->selectFieldsToInsert($requiredFields),
 		);
 
-		[$createSql, $dropSql] = $this->temporaryTableSchemaFactory->create($requiredColumns, $this->temporaryTable, $this->allowDuplicates);
+		[$createSql, $dropSql] = $this->temporaryTableSchemaFactory->create($requiredColumns, $this->temporaryTable);
 
 		$sqlCollection = [$createSql, $sql];
 
