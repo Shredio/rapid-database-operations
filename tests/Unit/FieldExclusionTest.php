@@ -5,23 +5,51 @@ namespace Tests\Unit;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
-use Shredio\RapidDatabaseOperations\Doctrine\DoctrineRapidInserter;
+use Shredio\RapidDatabaseOperations\DatabaseRapidInserter;
+use Shredio\RapidDatabaseOperations\Doctrine\DoctrineEntityReferenceFactory;
+use Shredio\RapidDatabaseOperations\Doctrine\DoctrineOperationEscaper;
+use Shredio\RapidDatabaseOperations\Doctrine\DoctrineOperationExecutor;
+use Shredio\RapidDatabaseOperations\Doctrine\DoctrineRapidOperationPlatformFactory;
+use Shredio\RapidDatabaseOperations\Metadata\OperationMetadata;
 use Shredio\RapidDatabaseOperations\Selection\FieldExclusion;
-use Tests\Common\RapidEnvironment;
+use Tests\Common\DoctrineMockEnvironment;
 use Tests\Unit\Entity\Article;
 
 final class FieldExclusionTest extends TestCase
 {
 
-	use RapidEnvironment;
+	use DoctrineMockEnvironment;
+
+	/**
+	 * @template T of object
+	 * @param class-string<T> $entity
+	 * @param mixed[] $options
+	 * @return DatabaseRapidInserter<T>
+	 */
+	private function createInserter(string $entity, string $platform, array $options = []): DatabaseRapidInserter
+	{
+		$em = $this->createEntityManager($platform);
+		$metadataProvider = $this->createClassMetadataProvider($em);
+		$metadata = $metadataProvider->getClassMetadata($entity);
+
+		return new DatabaseRapidInserter(
+			$entity,
+			OperationMetadata::createForDoctrine($entity, $metadataProvider),
+			new DoctrineOperationEscaper($em, $metadata),
+			new DoctrineOperationExecutor($em),
+			new DoctrineEntityReferenceFactory($em),
+			DoctrineRapidOperationPlatformFactory::create($em->getConnection()->getDatabasePlatform()),
+			$options,
+		);
+	}
 
 	#[TestWith(['mysql'])]
 	#[TestWith(['sqlite'])]
 	public function testUpsertWithFieldExclusion(string $platform): void
 	{
-		$inserter = new DoctrineRapidInserter(Article::class, $em = $this->createEntityManager($platform), $this->createClassMetadataProvider($em), [
-			DoctrineRapidInserter::Mode => DoctrineRapidInserter::ModeUpsert,
-			DoctrineRapidInserter::ColumnsToUpdate => new FieldExclusion(['content']),
+		$inserter = $this->createInserter(Article::class, $platform, [
+			DatabaseRapidInserter::Mode => DatabaseRapidInserter::ModeUpsert,
+			DatabaseRapidInserter::ColumnsToUpdate => new FieldExclusion(['content']),
 		]);
 		$inserter->addRaw([
 			'id' => 1,
@@ -42,9 +70,9 @@ final class FieldExclusionTest extends TestCase
 	#[TestWith(['sqlite'])]
 	public function testUpsertWithFieldExclusionMultipleFields(string $platform): void
 	{
-		$inserter = new DoctrineRapidInserter(Article::class, $em = $this->createEntityManager($platform), $this->createClassMetadataProvider($em), [
-			DoctrineRapidInserter::Mode => DoctrineRapidInserter::ModeUpsert,
-			DoctrineRapidInserter::ColumnsToUpdate => new FieldExclusion(['content']),
+		$inserter = $this->createInserter(Article::class, $platform, [
+			DatabaseRapidInserter::Mode => DatabaseRapidInserter::ModeUpsert,
+			DatabaseRapidInserter::ColumnsToUpdate => new FieldExclusion(['content']),
 		]);
 		$inserter->addRaw([
 			'id' => 1,
@@ -63,9 +91,9 @@ final class FieldExclusionTest extends TestCase
 
 	public function testFieldExclusionWithNonExistingField(): void
 	{
-		$inserter = new DoctrineRapidInserter(Article::class, $em = $this->createEntityManager(), $this->createClassMetadataProvider($em), [
-			DoctrineRapidInserter::Mode => DoctrineRapidInserter::ModeUpsert,
-			DoctrineRapidInserter::ColumnsToUpdate => new FieldExclusion(['nonexistent']),
+		$inserter = $this->createInserter(Article::class, 'mysql', [
+			DatabaseRapidInserter::Mode => DatabaseRapidInserter::ModeUpsert,
+			DatabaseRapidInserter::ColumnsToUpdate => new FieldExclusion(['nonexistent']),
 		]);
 		$inserter->addRaw([
 			'id' => 1,
@@ -81,9 +109,9 @@ final class FieldExclusionTest extends TestCase
 
 	public function testFieldExclusionWithMultipleNonExistingFields(): void
 	{
-		$inserter = new DoctrineRapidInserter(Article::class, $em = $this->createEntityManager(), $this->createClassMetadataProvider($em), [
-			DoctrineRapidInserter::Mode => DoctrineRapidInserter::ModeUpsert,
-			DoctrineRapidInserter::ColumnsToUpdate => new FieldExclusion(['nonexistent1', 'nonexistent2']),
+		$inserter = $this->createInserter(Article::class, 'mysql', [
+			DatabaseRapidInserter::Mode => DatabaseRapidInserter::ModeUpsert,
+			DatabaseRapidInserter::ColumnsToUpdate => new FieldExclusion(['nonexistent1', 'nonexistent2']),
 		]);
 		$inserter->addRaw([
 			'id' => 1,
@@ -99,9 +127,9 @@ final class FieldExclusionTest extends TestCase
 
 	public function testFieldExclusionExcludeAllFields(): void
 	{
-		$inserter = new DoctrineRapidInserter(Article::class, $em = $this->createEntityManager(), $this->createClassMetadataProvider($em), [
-			DoctrineRapidInserter::Mode => DoctrineRapidInserter::ModeUpsert,
-			DoctrineRapidInserter::ColumnsToUpdate => new FieldExclusion(['title', 'content']),
+		$inserter = $this->createInserter(Article::class, 'mysql', [
+			DatabaseRapidInserter::Mode => DatabaseRapidInserter::ModeUpsert,
+			DatabaseRapidInserter::ColumnsToUpdate => new FieldExclusion(['title', 'content']),
 		]);
 		$inserter->addRaw([
 			'id' => 1,

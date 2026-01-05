@@ -2,7 +2,9 @@
 
 namespace Shredio\RapidDatabaseOperations\Symfony;
 
+use Shredio\RapidDatabaseOperations\Doctrine\DoctrineExistencePartitioner;
 use Shredio\RapidDatabaseOperations\Doctrine\DoctrineRapidOperationFactory;
+use Shredio\RapidDatabaseOperations\Partitioner\ExistencePartitioner;
 use Shredio\RapidDatabaseOperations\RapidOperationFactory;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -19,6 +21,7 @@ final class RapidDatabaseOperationsBundle extends AbstractBundle
 		$services = $container->services();
 
 		$services->set(RapidOperationFactory::class, DoctrineRapidOperationFactory::class);
+		$services->set(ExistencePartitioner::class, DoctrineExistencePartitioner::class);
 	}
 
 }

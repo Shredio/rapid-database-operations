@@ -3,18 +3,16 @@
 namespace Shredio\RapidDatabaseOperations;
 
 use InvalidArgumentException;
-use Shredio\RapidDatabaseOperations\Platform\RapidOperationPlatform;
-use Shredio\RapidDatabaseOperations\Trait\ExecuteMethod;
+use Shredio\RapidDatabaseOperations\Metadata\OperationMetadata;
+use Shredio\RapidDatabaseOperations\Reference\EntityReferenceFactory;
 
 /**
  * @template T of object
  * @implements RapidUpdater<T>
  * @extends BaseRapidOperation<T>
  */
-abstract class BaseRapidUpdater extends BaseRapidOperation implements RapidUpdater
+class DatabaseRapidUpdater extends BaseRapidOperation implements RapidUpdater
 {
-
-	use ExecuteMethod;
 
 	/** @var int<0, max> */
 	private int $count = 0;
@@ -24,32 +22,33 @@ abstract class BaseRapidUpdater extends BaseRapidOperation implements RapidUpdat
 	protected readonly string $table;
 
 	/**
+	 * @param class-string<T> $entity
 	 * @param string[] $conditions
 	 */
 	public function __construct(
-		string $table,
+		string $entity,
+		OperationMetadata $operationMetadata,
+		OperationEscaper $escaper,
+		OperationExecutor $executor,
+		EntityReferenceFactory $entityReferenceFactory,
 		protected array $conditions,
-		protected readonly OperationEscaper $escaper,
 	)
 	{
-		$this->table = $this->escaper->escapeColumn($table);
+		parent::__construct($entity, $operationMetadata, $escaper, $executor, $entityReferenceFactory);
+
+		$this->table = $this->escaper->escapeColumn($operationMetadata->tableName);
 	}
 
-	abstract protected function getPlatform(): RapidOperationPlatform;
+	protected function extractValuesFromEntity(object $entity): array
+	{
+		return $this->operationMetadata->fields->extractValuesForUpdate($entity);
+	}
 
 	protected function shouldBeTransactional(): bool
 	{
 		return true;
 	}
 
-	public function addRaw(array $values): static
-	{
-		return $this->add(new OperationArrayValues($values));
-	}
-
-	/**
-	 * @internal Use of this method outside of the library is currently highly discouraged.
-	 */
 	public function add(OperationValues $values): static
 	{
 		$conditions = $this->extractConditions($values);
@@ -113,16 +112,6 @@ abstract class BaseRapidUpdater extends BaseRapidOperation implements RapidUpdat
 		}
 
 		return $conditions;
-	}
-
-	protected function mapFieldToColumn(string $field): string
-	{
-		return $field;
-	}
-
-	private function resolveField(string $field): string
-	{
-		return $this->escaper->escapeColumn($this->mapFieldToColumn($field));
 	}
 
 	public function getItemCount(): int

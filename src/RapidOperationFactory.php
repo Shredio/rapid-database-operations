@@ -2,7 +2,9 @@
 
 namespace Shredio\RapidDatabaseOperations;
 
+use Shredio\RapidDatabaseOperations\Selection\AllFields;
 use Shredio\RapidDatabaseOperations\Selection\FieldExclusion;
+use Shredio\RapidDatabaseOperations\Selection\FieldSelection;
 
 /**
  * Factory interface for creating rapid database operations.
@@ -27,12 +29,40 @@ interface RapidOperationFactory
 	 * then inserts values into it, then updates existing values in the target table based on the temporary table.
 	 * More efficient than a regular update for large datasets.
 	 *
+	 * @deprecated Use createLargeUpdate() instead.
+	 *
 	 * @template T of object
 	 * @param class-string<T> $entity The entity class to update
 	 * @param string[] $conditions Array of field names used as conditions for matching records
-	 * @return RapidUpdater<T>
+	 * @return RapidOperation<T>
 	 */
-	public function createBigUpdate(string $entity, array $conditions): RapidUpdater;
+	public function createBigUpdate(string $entity, array $conditions): RapidOperation;
+
+	/**
+	 * Creates a new temporary table,
+	 * then inserts values into it, then updates existing values in the target table based on the temporary table.
+	 * More efficient than a regular update for large datasets.
+	 *
+	 * @template T of object
+	 * @param class-string<T> $entity The entity class to update
+	 * @param list<non-empty-string> $fieldsToMatch
+	 * @param non-empty-list<non-empty-string>|FieldSelection $fieldsToUpdate Array of field names to update (empty array means all fields)
+	 * @return RapidOperation<T>
+	 */
+	public function createLargeUpdate(string $entity, array $fieldsToMatch = [], array|FieldSelection $fieldsToUpdate = new AllFields()): RapidOperation;
+
+	/**
+	 * Creates a new temporary table,
+	 * then inserts values into it, then performs an upsert operation on the target table based on the temporary table.
+	 * More efficient than a regular upsert for large datasets.
+	 *
+	 * @template T of object
+	 * @param class-string<T> $entity The entity class to upsert
+	 * @param non-empty-list<non-empty-string>|FieldSelection $fieldsToUpdate Array of field names to update on conflict (empty array means all fields)
+	 * @param list<non-empty-string> $fieldsToMatch
+	 * @return RapidOperation<T>
+	 */
+	public function createLargeUpsert(string $entity, array|FieldSelection $fieldsToUpdate = new AllFields(), array $fieldsToMatch = []): RapidOperation;
 
 	/**
 	 * Updates existing values in the database based on specified conditions.

@@ -2,29 +2,32 @@
 
 namespace Tests\Unit;
 
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
-use Shredio\RapidDatabaseOperations\Doctrine\DoctrineRapidInserter;
-use Shredio\RapidDatabaseOperations\Metadata\ClassMetadataProvider;
-use Tests\Common\DoctrineContext;
-use Tests\Common\RapidEnvironment;
-use Tests\Common\TestManagerRegistry;
+use Shredio\RapidDatabaseOperations\DatabaseRapidInserter;
+use Shredio\RapidDatabaseOperations\Doctrine\DoctrineEntityReferenceFactory;
+use Shredio\RapidDatabaseOperations\Doctrine\DoctrineOperationEscaper;
+use Shredio\RapidDatabaseOperations\Doctrine\DoctrineOperationExecutor;
+use Shredio\RapidDatabaseOperations\Doctrine\DoctrineRapidOperationPlatformFactory;
+use Shredio\RapidDatabaseOperations\Metadata\OperationMetadata;
+use Tests\Common\DoctrineEnvironment;
+use Tests\Common\DoctrineMockEnvironment;
 use Tests\Unit\Entity\Article;
+use Tests\Unit\Entity\Earnings;
 use Tests\Unit\Entity\Post;
 
-final class RapidInserterTest extends TestCase
+final class InserterSqlTest extends TestCase
 {
 
-	use RapidEnvironment;
-	use DoctrineContext;
+	use DoctrineMockEnvironment;
 
 	#[TestWith(['mysql'])]
 	#[TestWith(['sqlite'])]
 	public function testInsert(string $platform): void
 	{
-		$inserter = new DoctrineRapidInserter(Article::class, $em = $this->createEntityManager($platform), $this->createClassMetadataProvider($em));
+		$inserter = $this->createInserter(Article::class, $platform);
 		$inserter->addRaw([
 			'id' => 1,
 			'title' => 'foo',
@@ -41,10 +44,23 @@ final class RapidInserterTest extends TestCase
 		$this->assertSame(2, $inserter->getItemCount());
 	}
 
+	#[TestWith(['mysql'])]
+	#[TestWith(['sqlite'])]
+	public function testInsertGeneratedId(string $platform): void
+	{
+		$inserter = $this->createInserter(Earnings::class, $platform);
+		$inserter->addEntity(new Earnings('AAPL'));
+		$inserter->addEntity(new Earnings('NVDA'));
+
+		$this->assertSame("INSERT INTO `earnings` (`symbol`, `date`, `eps_actual`, `eps_estimated`, `revenue_actual`, `revenue_estimated`) VALUES ('AAPL', '', NULL, NULL, NULL, NULL),
+('NVDA', '', NULL, NULL, NULL, NULL);", $inserter->getSql());
+		$this->assertSame(2, $inserter->getItemCount());
+	}
+
 	public function testInsertWithCustomNames(): void
 	{
-		$inserter = new DoctrineRapidInserter(Post::class, $em = $this->createEntityManager(), $this->createClassMetadataProvider($em), [
-			DoctrineRapidInserter::Mode => DoctrineRapidInserter::ModeUpsert,
+		$inserter = $this->createInserter(Post::class, 'mysql', [
+			DatabaseRapidInserter::Mode => DatabaseRapidInserter::ModeUpsert,
 		]);
 		$inserter->addRaw([
 			'id' => 1,
@@ -58,8 +74,8 @@ final class RapidInserterTest extends TestCase
 	#[TestWith(['sqlite'])]
 	public function testUpsert(string $platform): void
 	{
-		$inserter = new DoctrineRapidInserter(Article::class, $em = $this->createEntityManager($platform), $this->createClassMetadataProvider($em), [
-			DoctrineRapidInserter::Mode => DoctrineRapidInserter::ModeUpsert,
+		$inserter = $this->createInserter(Article::class, $platform, [
+			DatabaseRapidInserter::Mode => DatabaseRapidInserter::ModeUpsert,
 		]);
 		$inserter->addRaw([
 			'id' => 1,
@@ -80,8 +96,8 @@ final class RapidInserterTest extends TestCase
 	#[TestWith(['sqlite'])]
 	public function testInsertNonExisting(string $platform): void
 	{
-		$inserter = new DoctrineRapidInserter(Article::class, $em = $this->createEntityManager($platform), $this->createClassMetadataProvider($em), [
-			DoctrineRapidInserter::Mode => DoctrineRapidInserter::ModeInsertNonExisting,
+		$inserter = $this->createInserter(Article::class, $platform, [
+			DatabaseRapidInserter::Mode => DatabaseRapidInserter::ModeInsertNonExisting,
 		]);
 		$inserter->addRaw([
 			'id' => 1,
@@ -102,9 +118,9 @@ final class RapidInserterTest extends TestCase
 	#[TestWith(['sqlite'])]
 	public function testUpsertColumnsToUpdate(string $platform): void
 	{
-		$inserter = new DoctrineRapidInserter(Article::class, $em = $this->createEntityManager($platform), $this->createClassMetadataProvider($em), [
-			DoctrineRapidInserter::Mode => DoctrineRapidInserter::ModeUpsert,
-			DoctrineRapidInserter::ColumnsToUpdate => ['title'],
+		$inserter = $this->createInserter(Article::class, $platform, [
+			DatabaseRapidInserter::Mode => DatabaseRapidInserter::ModeUpsert,
+			DatabaseRapidInserter::ColumnsToUpdate => ['title'],
 		]);
 		$inserter->addRaw([
 			'id' => 1,
@@ -123,7 +139,7 @@ final class RapidInserterTest extends TestCase
 
 	public function testMissingFields(): void
 	{
-		$inserter = new DoctrineRapidInserter(Article::class, $em = $this->createEntityManager(), $this->createClassMetadataProvider($em));
+		$inserter = $this->createInserter(Article::class, 'mysql');
 		$inserter->addRaw([
 			'id' => 1,
 			'title' => 'foo',
@@ -141,7 +157,7 @@ final class RapidInserterTest extends TestCase
 
 	public function testExtraFields(): void
 	{
-		$inserter = new DoctrineRapidInserter(Article::class, $em = $this->createEntityManager(), $this->createClassMetadataProvider($em));
+		$inserter = $this->createInserter(Article::class, 'mysql');
 		$inserter->addRaw([
 			'id' => 1,
 			'title' => 'foo',
@@ -161,7 +177,7 @@ final class RapidInserterTest extends TestCase
 
 	public function testMissingAndExtraFields(): void
 	{
-		$inserter = new DoctrineRapidInserter(Article::class, $em = $this->createEntityManager(), $this->createClassMetadataProvider($em));
+		$inserter = $this->createInserter(Article::class, 'mysql');
 		$inserter->addRaw([
 			'id' => 1,
 			'title' => 'foo',
@@ -180,7 +196,7 @@ final class RapidInserterTest extends TestCase
 
 	public function testInvalidOrder(): void
 	{
-		$inserter = new DoctrineRapidInserter(Article::class, $em = $this->createEntityManager(), $this->createClassMetadataProvider($em));
+		$inserter = $this->createInserter(Article::class, 'mysql');
 		$inserter->addRaw([
 			'id' => 1,
 			'title' => 'foo',
@@ -197,26 +213,27 @@ final class RapidInserterTest extends TestCase
 		]);
 	}
 
-	public function testLargeInsert(): void
+	/**
+	 * @template T of object
+	 * @param class-string<T> $entity
+	 * @param mixed[] $options
+	 * @return DatabaseRapidInserter<T>
+	 */
+	private function createInserter(string $entity, string $platform, array $options = []): DatabaseRapidInserter
 	{
-		$inserter = new DoctrineRapidInserter(
-			Article::class,
-			$em = $this->getEntityManager(),
-			new ClassMetadataProvider(new TestManagerRegistry($em)),
+		$em = $this->createEntityManager($platform);
+		$metadataProvider = $this->createClassMetadataProvider($em);
+		$metadata = $metadataProvider->getClassMetadata($entity);
+
+		return new DatabaseRapidInserter(
+			$entity,
+			OperationMetadata::createForDoctrine($entity, $metadataProvider),
+			new DoctrineOperationEscaper($em, $metadata),
+			new DoctrineOperationExecutor($em),
+			new DoctrineEntityReferenceFactory($em),
+			DoctrineRapidOperationPlatformFactory::create($em->getConnection()->getDatabasePlatform()),
+			$options,
 		);
-
-		$expected = 1000;
-		for ($i = 1; $i <= $expected; $i++) {
-			$inserter->addRaw([
-				'id' => $i,
-				'title' => 'Title ' . $i,
-				'content' => 'Content ' . $i,
-			]);
-		}
-
-		$this->assertSame($expected, $inserter->execute());
-		$count = $em->getConnection()->executeQuery('SELECT COUNT(*) FROM articles')->fetchFirstColumn()[0] ?? null;
-		$this->assertSame($expected, $count);
 	}
 
 }

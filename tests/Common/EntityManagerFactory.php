@@ -6,6 +6,7 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
 use Doctrine\ORM\ORMSetup;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
@@ -28,6 +29,8 @@ final readonly class EntityManagerFactory
 		$config = ORMSetup::createAttributeMetadataConfiguration([
 			__DIR__ . '/../Unit/Entity',
 		], true, cache: new ArrayAdapter());
+		$config->setNamingStrategy(new UnderscoreNamingStrategy());
+
 		$connection = DriverManager::getConnection($params, $config);
 
 		if (isset($params['dbname'])) {

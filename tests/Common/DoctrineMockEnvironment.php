@@ -7,10 +7,11 @@ use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
 use Doctrine\ORM\ORMSetup;
 use Shredio\RapidDatabaseOperations\Metadata\ClassMetadataProvider;
 
-trait RapidEnvironment
+trait DoctrineMockEnvironment
 {
 
 	private function createEntityManager(?string $platform = null): EntityManager
@@ -20,6 +21,7 @@ trait RapidEnvironment
 		$platform ??= $this->getDefaultPlatform();
 
 		$configuration = ORMSetup::createAttributeMetadataConfiguration([__DIR__ . '/../Unit/Entity'], true);
+		$configuration->setNamingStrategy(new UnderscoreNamingStrategy());
 		$connection = $this->createStub(Connection::class);
 		$connection->method('quote')->willReturnCallback(function (string $value): string {
 			return sprintf("'%s'", $value);

@@ -2,9 +2,15 @@
 
 namespace Tests\Unit;
 
-use Shredio\RapidDatabaseOperations\Doctrine\DoctrineRapidInserter;
+use Doctrine\ORM\EntityManagerInterface;
+use Shredio\RapidDatabaseOperations\DatabaseRapidInserter;
+use Shredio\RapidDatabaseOperations\Doctrine\DoctrineEntityReferenceFactory;
+use Shredio\RapidDatabaseOperations\Doctrine\DoctrineOperationEscaper;
+use Shredio\RapidDatabaseOperations\Doctrine\DoctrineOperationExecutor;
+use Shredio\RapidDatabaseOperations\Doctrine\DoctrineRapidOperationPlatformFactory;
+use Shredio\RapidDatabaseOperations\Metadata\OperationMetadata;
 use Tests\Common\IntValueObject;
-use Tests\Common\RapidEnvironment;
+use Tests\Common\DoctrineMockEnvironment;
 use Tests\TestCase;
 use Tests\Unit\Entity\Article;
 use Tests\Unit\Entity\Product;
@@ -13,11 +19,31 @@ use Tests\Unit\Entity\User;
 final class AddEntityTest extends TestCase
 {
 
-	use RapidEnvironment;
+	use DoctrineMockEnvironment;
+
+	/**
+	 * @template T of object
+	 * @param class-string<T> $entity
+	 * @return DatabaseRapidInserter<T>
+	 */
+	private function createInserter(string $entity, EntityManagerInterface $em): DatabaseRapidInserter
+	{
+		$metadataProvider = $this->createClassMetadataProvider($em);
+		$metadata = $metadataProvider->getClassMetadata($entity);
+
+		return new DatabaseRapidInserter(
+			$entity,
+			OperationMetadata::createForDoctrine($entity, $metadataProvider),
+			new DoctrineOperationEscaper($em, $metadata),
+			new DoctrineOperationExecutor($em),
+			new DoctrineEntityReferenceFactory($em),
+			DoctrineRapidOperationPlatformFactory::create($em->getConnection()->getDatabasePlatform()),
+		);
+	}
 
 	public function testFields(): void
 	{
-		$inserter = new DoctrineRapidInserter(Article::class, $em = $this->createEntityManager(), $this->createClassMetadataProvider($em));
+		$inserter = $this->createInserter(Article::class, $this->createEntityManager());
 		$inserter->addEntity(new Article(12, 'Test Title', 'Test Content'));
 
 		$this->assertSame("INSERT INTO `articles` (`id`, `title`, `content`) VALUES ('12', 'Test Title', 'Test Content');", $inserter->getSql());
@@ -25,7 +51,7 @@ final class AddEntityTest extends TestCase
 
 	public function testAssociations(): void
 	{
-		$inserter = new DoctrineRapidInserter(User::class, $em = $this->createEntityManager('sqlite'), $this->createClassMetadataProvider($em));
+		$inserter = $this->createInserter(User::class, $this->createEntityManager('sqlite'));
 		$user = new User(1, 'John Doe', 'john.doe@example.com');
 		$user->setFavoriteArticle(new Article(1, 'Favorite Article', 'This is the content of the favorite article.'));
 
@@ -36,7 +62,8 @@ final class AddEntityTest extends TestCase
 
 	public function testAssociationReferences(): void
 	{
-		$inserter = new DoctrineRapidInserter(User::class, $em = $this->createEntityManager('sqlite'), $this->createClassMetadataProvider($em));
+		$em = $this->createEntityManager('sqlite');
+		$inserter = $this->createInserter(User::class, $em);
 		$user = new User(1, 'John Doe', 'john.doe@example.com');
 		$user->setFavoriteArticle($reference = $em->getReference(Article::class, 1));
 
@@ -48,7 +75,8 @@ final class AddEntityTest extends TestCase
 
 	public function testAssociationOwnReferences(): void
 	{
-		$inserter = new DoctrineRapidInserter(User::class, $em = $this->createEntityManager('sqlite'), $this->createClassMetadataProvider($em));
+		$em = $this->createEntityManager('sqlite');
+		$inserter = $this->createInserter(User::class, $em);
 		$user = new User(1, 'John Doe', 'john.doe@example.com');
 		$user->setFavoriteArticle($reference = $inserter->createEntityReference(Article::class, 1));
 
@@ -60,7 +88,7 @@ final class AddEntityTest extends TestCase
 
 	public function testValueObject(): void
 	{
-		$inserter = new DoctrineRapidInserter(Product::class, $em = $this->createEntityManager(), $this->createClassMetadataProvider($em));
+		$inserter = $this->createInserter(Product::class, $this->createEntityManager());
 		$inserter->addEntity(new Product(1, 'Test Product', new IntValueObject(42)));
 		$inserter->addEntity(new Product(2, 'Test Product 2', new IntValueObject(40)));
 

@@ -40,4 +40,10 @@ class Earnings
 	#[Column(type: Types::BIGINT, nullable: true)]
 	public ?int $revenueEstimated = null;
 
+	public function __construct(string $symbol, ?DateTimeImmutable $date = null)
+	{
+		$this->symbol = $symbol;
+		$this->date = $date ?? new DateTimeImmutable();
+	}
+
 }

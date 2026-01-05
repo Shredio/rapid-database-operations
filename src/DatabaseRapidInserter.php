@@ -4,22 +4,20 @@ namespace Shredio\RapidDatabaseOperations;
 
 use InvalidArgumentException;
 use LogicException;
+use Shredio\RapidDatabaseOperations\Metadata\OperationMetadata;
 use Shredio\RapidDatabaseOperations\Platform\RapidOperationPlatform;
+use Shredio\RapidDatabaseOperations\Reference\EntityReferenceFactory;
 use Shredio\RapidDatabaseOperations\Selection\AllFields;
-use Shredio\RapidDatabaseOperations\Selection\FieldExclusion;
 use Shredio\RapidDatabaseOperations\Selection\FieldInclusion;
 use Shredio\RapidDatabaseOperations\Selection\FieldSelection;
-use Shredio\RapidDatabaseOperations\Trait\ExecuteMethod;
 
 /**
  * @template T of object
  * @implements RapidInserter<T>
  * @extends BaseRapidOperation<T>
  */
-abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInserter
+class DatabaseRapidInserter extends BaseRapidOperation implements RapidInserter
 {
-
-	use ExecuteMethod;
 
 	/** @var int<0, max> */
 	private int $count = 0;
@@ -34,25 +32,27 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 
 	protected int $mode;
 
-	protected readonly string $table;
-
 	protected FieldSelection $columnsToUpdate;
 
 	/** @var string[] */
 	private array $required = [];
 
 	/**
+	 * @param class-string<T> $entity
 	 * @param mixed[] $options
-	 * @param list<string> $idColumns
 	 */
 	public function __construct(
-		string $table,
-		private readonly OperationEscaper $escaper,
-		private array $idColumns,
+		string $entity,
+		OperationMetadata $operationMetadata,
+		OperationEscaper $escaper,
+		OperationExecutor $executor,
+		EntityReferenceFactory $entityReferenceFactory,
+		private readonly RapidOperationPlatform $platform,
 		array $options = [],
 	)
 	{
-		$this->table = $this->escaper->escapeColumn($table);
+		parent::__construct($entity, $operationMetadata, $escaper, $executor, $entityReferenceFactory);
+
 		if (isset($options[self::ColumnsToUpdate])) {
 			$this->columnsToUpdate = is_array($options[self::ColumnsToUpdate]) ? new FieldInclusion($options[self::ColumnsToUpdate]) : $options[self::ColumnsToUpdate]; // @phpstan-ignore-line
 		} else {
@@ -62,21 +62,20 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 		$this->mode = $options[self::Mode] ?? self::ModeNormal;
 	}
 
-	abstract protected function getPlatform(): RapidOperationPlatform;
+	protected function extractValuesFromEntity(object $entity): array
+	{
+		if ($this->mode === self::ModeUpsert) {
+			return $this->operationMetadata->fields->extractValuesForUpsert($entity);
+		}
+
+		return $this->operationMetadata->fields->extractValuesForInsert($entity);
+	}
 
 	protected function shouldBeTransactional(): bool
 	{
 		return false;
 	}
 
-	public function addRaw(array $values): static
-	{
-		return $this->add(new OperationArrayValues($values));
-	}
-
-	/**
-	 * @internal Use of this method outside of the library is currently highly discouraged.
-	 */
 	public function add(OperationValues $values): static
 	{
 		$this->checkCorrectOrder($values);
@@ -104,17 +103,22 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 
 	/**
 	 * @param string[] $fields
-	 * @return string[]
+	 * @return list<string>
 	 */
 	protected function filterFieldsToUpdate(array $fields): array
 	{
-		return $fields;
-	}
+		$list = [];
+		foreach ($fields as $field) {
+			$meta = $this->operationMetadata->fields->get($field);
+			if (!$meta->isUpdatable || $meta->isIdentifier) {
+				continue;
+			}
 
-	/**
-	 * @return string[]
-	 */
-	abstract protected function getDefaultFieldsToUpdate(): array;
+			$list[] = $field;
+		}
+
+		return $list;
+	}
 
 	private function sqlForStart(OperationValues $values): string
 	{
@@ -122,7 +126,7 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 
 		return sprintf(
 			'INSERT INTO %s (%s) VALUES ',
-			$this->table,
+			$this->escaper->escapeColumn($this->operationMetadata->tableName),
 			implode(', ', array_map($this->resolveField(...), $keys)),
 		);
 	}
@@ -130,16 +134,17 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 	private function sqlForEnd(): string
 	{
 		if ($this->mode === self::ModeUpsert) {
+			$idColumns = $this->getEscapedIdColumns();
 			$columns = array_map(
 				$this->resolveField(...),
 				$this->getFieldsToUpdate(),
 			);
 
-			$sql = $this->getPlatform()->onConflictUpdate($this->getEscapedIdColumns(), $columns);
+			$sql = $this->platform->onConflictUpdate($idColumns, $columns === [] ? $idColumns : $columns);
 
 			return $sql ? ' ' . $sql : '';
 		} else if ($this->mode === self::ModeInsertNonExisting) {
-			$sql = $this->getPlatform()->onConflictNothing($this->getEscapedIdColumns());
+			$sql = $this->platform->onConflictNothing($this->getEscapedIdColumns());
 
 			return $sql ? ' ' . $sql : '';
 		}
@@ -151,15 +156,6 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 	 * @return string[]
 	 */
 	private function getFieldsToUpdate(): array
-	{
-		$fields = $this->_getFieldsToUpdate();
-		return $fields === [] ? $this->getDefaultFieldsToUpdate() : $fields;
-	}
-
-	/**
-	 * @return string[]
-	 */
-	private function _getFieldsToUpdate(): array
 	{
 		if ($this->columnsToUpdate instanceof AllFields) {
 			return $this->filterFieldsToUpdate($this->required);
@@ -173,11 +169,13 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 	 */
 	private function getEscapedIdColumns(): array
 	{
-		if (!$this->idColumns) {
-			throw new LogicException('No id columns provided');
+		$idColumns = $this->operationMetadata->fields->getIdentifierColumns();
+
+		if ($idColumns === []) {
+			throw new LogicException('No identifier columns defined for the operation.');
 		}
 
-		return array_map($this->escaper->escapeColumn(...), $this->idColumns);
+		return array_map($this->escaper->escapeColumn(...), $idColumns);
 	}
 
 	private function checkCorrectOrder(OperationValues $values): void
@@ -235,16 +233,6 @@ abstract class BaseRapidInserter extends BaseRapidOperation implements RapidInse
 	{
 		$this->sql = '';
 		$this->required = [];
-	}
-
-	protected function mapFieldToColumn(string $field): string
-	{
-		return $field;
-	}
-
-	private function resolveField(string $field): string
-	{
-		return $this->escaper->escapeColumn($this->mapFieldToColumn($field));
 	}
 
 	public function getItemCount(): int

@@ -2,7 +2,9 @@
 
 namespace Shredio\RapidDatabaseOperations;
 
-use InvalidArgumentException;
+use Shredio\RapidDatabaseOperations\Metadata\OperationMetadata;
+use Shredio\RapidDatabaseOperations\Reference\EntityReferenceFactory;
+use Shredio\RapidDatabaseOperations\Selection\FieldSelection;
 
 /**
  * @template T of object
@@ -12,18 +14,80 @@ use InvalidArgumentException;
 abstract class BaseRapidOperation implements RapidOperation
 {
 
-	abstract public function add(OperationValues $values): static;
-
 	/**
-	 * @param RapidOperation<T> $operation
+	 * @param class-string<T> $entity
 	 */
-	protected function addOperationValuesToOperation(RapidOperation $operation, OperationValues $values): void
+	public function __construct(
+		protected readonly string $entity,
+		protected readonly OperationMetadata $operationMetadata,
+		protected readonly OperationEscaper $escaper,
+		protected readonly OperationExecutor $executor,
+		protected readonly EntityReferenceFactory $entityReferenceFactory,
+	)
 	{
-		if (!$operation instanceof self) {
-			throw new InvalidArgumentException(sprintf('Invalid operation for adding operation values: %s', $operation::class));
+	}
+
+	final public function execute(): int
+	{
+		$sql = $this->getSql();
+		if ($sql === '') {
+			return 0;
 		}
 
-		$operation->add($values);
+		$count = $this->executor->execute($sql, $this->shouldBeTransactional(), $this->getFixedItemCount());
+		$this->reset();
+
+		return $count; // @phpstan-ignore return.type
+	}
+
+	/**
+	 * @return int<0, max>|null
+	 */
+	protected function getFixedItemCount(): ?int
+	{
+		return null;
+	}
+
+	abstract protected function shouldBeTransactional(): bool;
+
+	abstract protected function reset(): void;
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	abstract protected function extractValuesFromEntity(object $entity): array;
+
+	public function addPartialEntity(object $entity, FieldSelection $selection): static
+	{
+		$this->addRaw($selection->select($this->extractValuesFromEntity($entity)));
+
+		return $this;
+	}
+
+	/**
+	 * @param T $entity
+	 */
+	public function addEntity(object $entity): static
+	{
+		$this->addRaw($this->extractValuesFromEntity($entity));
+
+		return $this;
+	}
+
+	public function addRaw(array $values): static
+	{
+		return $this->add(new OperationArrayValues($values));
+	}
+
+	public function createEntityReference(string $className, mixed $id): object
+	{
+		return $this->entityReferenceFactory->create($className, $id);
+	}
+
+	protected function resolveField(string $field, bool $escapeColumnName = true): string
+	{
+		$columnName = $this->operationMetadata->getColumnNameForField($field);
+		return $escapeColumnName ? $this->escaper->escapeColumn($columnName) : $columnName;
 	}
 
 }

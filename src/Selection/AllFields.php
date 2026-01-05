@@ -14,4 +14,9 @@ final readonly class AllFields implements FieldSelection
 		return array_values($fields);
 	}
 
+	public function select(array $values): array
+	{
+		return $values;
+	}
+
 }

@@ -2,6 +2,8 @@
 
 namespace Shredio\RapidDatabaseOperations;
 
+use Shredio\RapidDatabaseOperations\Selection\FieldSelection;
+
 /**
  * Base interface for all rapid database operations.
  * Provides core functionality for adding values, executing operations, and retrieving SQL.
@@ -23,6 +25,16 @@ interface RapidOperation
 	 * @param T $entity
 	 */
 	public function addEntity(object $entity): static;
+
+	/**
+	 * @param T $entity
+	 */
+	public function addPartialEntity(object $entity, FieldSelection $selection): static;
+
+	/**
+	 * @internal
+	 */
+	public function add(OperationValues $values): static;
 
 	/**
 	 * Creates a reference to an entity of the given class with the specified identifier.

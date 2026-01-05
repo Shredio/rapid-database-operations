@@ -42,4 +42,17 @@ final readonly class FieldExclusion implements FieldSelection
 		return $final;
 	}
 
+	public function select(array $values): array
+	{
+		$excluded = $this->excludedFields;
+		$final = [];
+		foreach ($values as $key => $value) {
+			if (!isset($excluded[$key])) {
+				$final[$key] = $value;
+			}
+		}
+
+		return $final;
+	}
+
 }

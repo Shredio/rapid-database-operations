@@ -2,14 +2,13 @@
 
 namespace Shredio\RapidDatabaseOperations;
 
-use Shredio\RapidDatabaseOperations\Exception\InvalidEntityReferenceException;
+use Shredio\RapidDatabaseOperations\Selection\FieldSelection;
 
 /**
  * @template T of object
  * @implements RapidOperation<T>
- * @extends BaseRapidOperation<T>
  */
-final class BatchedRapidOperation extends BaseRapidOperation implements RapidOperation
+final class BatchedRapidOperation implements RapidOperation
 {
 
 	/** @var int<0, max> */
@@ -40,6 +39,14 @@ final class BatchedRapidOperation extends BaseRapidOperation implements RapidOpe
 		return $this;
 	}
 
+	public function addPartialEntity(object $entity, FieldSelection $selection): static
+	{
+		$this->operation->addPartialEntity($entity, $selection);
+		$this->increment();
+
+		return $this;
+	}
+
 	public function addEntity(object $entity): static
 	{
 		$this->operation->addEntity($entity);
@@ -53,12 +60,9 @@ final class BatchedRapidOperation extends BaseRapidOperation implements RapidOpe
 		return $this->operation->createEntityReference($className, $id);
 	}
 
-	/**
-	 * @internal Use of this method outside of the library is currently highly discouraged.
-	 */
 	public function add(OperationValues $values): static
 	{
-		$this->addOperationValuesToOperation($this->operation, $values);
+		$this->operation->add($values);
 		$this->increment();
 
 		return $this;

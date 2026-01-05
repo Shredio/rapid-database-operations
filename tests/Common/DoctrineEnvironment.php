@@ -4,8 +4,10 @@ namespace Tests\Common;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
+use PHPUnit\Framework\Assert;
+use Shredio\RapidDatabaseOperations\Metadata\ClassMetadataProvider;
 
-trait DoctrineContext
+trait DoctrineEnvironment
 {
 
 	private ?EntityManagerInterface $em = null;
@@ -24,6 +26,26 @@ trait DoctrineContext
 		$schemaTool->createSchema($em->getMetadataFactory()->getAllMetadata());
 
 		return $em;
+	}
+
+	private function createClassMetadataProvider(EntityManagerInterface $em): ClassMetadataProvider
+	{
+		return new ClassMetadataProvider(new TestManagerRegistry($em));
+	}
+
+	/**
+	 * @param class-string $entity
+	 */
+	private function assertRecordCount(string $entity, int $expectedCount): void
+	{
+		$em = $this->getEntityManager();
+		$repository = $em->getRepository($entity);
+
+		Assert::assertSame(
+			$expectedCount,
+			$repository->count(),
+			sprintf('Expected %d records in %s, found %d.', $expectedCount, $entity, $repository->count()),
+		);
 	}
 
 	/**

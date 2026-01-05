@@ -23,4 +23,18 @@ final readonly class FieldInclusion implements FieldSelection
 		return $this->fields;
 	}
 
+	public function select(array $values): array
+	{
+		$result = [];
+		foreach ($this->fields as $field) {
+			if (array_key_exists($field, $values)) {
+				$result[$field] = $values[$field];
+			} else {
+				throw new \LogicException("Field '{$field}' does not exist in the provided values.");
+			}
+		}
+
+		return $result;
+	}
+
 }
