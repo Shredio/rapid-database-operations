@@ -9,6 +9,7 @@ use Shredio\RapidDatabaseOperations\Platform\RapidOperationPlatform;
 use Shredio\RapidDatabaseOperations\Reference\EntityReferenceFactory;
 use Shredio\RapidDatabaseOperations\Schema\RandomTemporaryTableNameGenerator;
 use Shredio\RapidDatabaseOperations\Schema\TemporaryTableNameGenerator;
+use Shredio\RapidDatabaseOperations\Schema\TemporaryTableOptions;
 use Shredio\RapidDatabaseOperations\Schema\TemporaryTableSchemaFactory;
 use Shredio\RapidDatabaseOperations\Selection\AllFields;
 use Shredio\RapidDatabaseOperations\Selection\FieldSelection;
@@ -19,6 +20,8 @@ use Shredio\RapidDatabaseOperations\Selection\FieldSelection;
  */
 final class DatabaseRapidLargeOperation extends BaseRapidOperation
 {
+
+	public const string TemporaryTableCollation = 'temporary_table_collation';
 
 	protected readonly string $temporaryTable;
 
@@ -33,6 +36,7 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 	/**
 	 * @param class-string<T> $entity
 	 * @param list<non-empty-string> $fieldsToMatch
+	 * @param array<string, mixed> $options
 	 */
 	private function __construct(
 		string $entity,
@@ -46,6 +50,7 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 		TemporaryTableNameGenerator $temporaryTableNameGenerator = new RandomTemporaryTableNameGenerator(),
 		private readonly FieldSelection $fieldsToUpdate = new AllFields(),
 		private readonly array $fieldsToMatch = [],
+		private readonly array $options = [],
 	)
 	{
 		parent::__construct($entity, $operationMetadata, $escaper, $executor, $entityReferenceFactory);
@@ -70,6 +75,7 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 	 * @template TEntity of object
 	 * @param class-string<TEntity> $entity
 	 * @param list<non-empty-string> $fieldsToMatch
+	 * @param array<string, mixed> $options
 	 * @return self<TEntity>
 	 */
 	public static function createUpdate(
@@ -83,6 +89,7 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 		TemporaryTableNameGenerator $temporaryTableNameGenerator = new RandomTemporaryTableNameGenerator(),
 		FieldSelection $fieldsToUpdate = new AllFields(),
 		array $fieldsToMatch = [],
+		array $options = [],
 	): self
 	{
 		return new self(
@@ -97,6 +104,7 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 			$temporaryTableNameGenerator,
 			$fieldsToUpdate,
 			$fieldsToMatch,
+			$options,
 		);
 	}
 
@@ -104,6 +112,7 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 	 * @template TEntity of object
 	 * @param class-string<TEntity> $entity
 	 * @param list<non-empty-string> $fieldsToMatch
+	 * @param array<string, mixed> $options
 	 * @return self<TEntity>
 	 */
 	public static function createUpsert(
@@ -117,6 +126,7 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 		TemporaryTableNameGenerator $temporaryTableNameGenerator = new RandomTemporaryTableNameGenerator(),
 		FieldSelection $fieldsToUpdate = new AllFields(),
 		array $fieldsToMatch = [],
+		array $options = [],
 	): self
 	{
 		return new self(
@@ -131,12 +141,14 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 			$temporaryTableNameGenerator,
 			$fieldsToUpdate,
 			$fieldsToMatch,
+			$options,
 		);
 	}
 
 	/**
 	 * @template TEntity of object
 	 * @param class-string<TEntity> $entity
+	 * @param array<string, mixed> $options
 	 * @return self<TEntity>
 	 */
 	public static function createInsert(
@@ -148,6 +160,7 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 		TemporaryTableSchemaFactory $temporaryTableSchemaFactory,
 		RapidOperationPlatform $platform,
 		TemporaryTableNameGenerator $temporaryTableNameGenerator = new RandomTemporaryTableNameGenerator(),
+		array $options = [],
 	): self
 	{
 		return new self(
@@ -160,6 +173,7 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 			$platform,
 			OperationType::Insert,
 			$temporaryTableNameGenerator,
+			options: $options,
 		);
 	}
 
@@ -241,7 +255,13 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 			$this->operationMetadata->selectFieldsToInsert($requiredFields),
 		);
 
-		[$createSql, $dropSql] = $this->temporaryTableSchemaFactory->create($requiredColumns, $this->temporaryTable);
+		[$createSql, $dropSql] = $this->temporaryTableSchemaFactory->create(
+			$requiredColumns,
+			$this->temporaryTable,
+			options: new TemporaryTableOptions(
+				collation: $this->options[self::TemporaryTableCollation] ?? null, // @phpstan-ignore argument.type
+			),
+		);
 
 		$sqlCollection = [$createSql, $sql];
 

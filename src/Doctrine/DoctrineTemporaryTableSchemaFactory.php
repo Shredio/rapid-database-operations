@@ -13,6 +13,7 @@ use Doctrine\DBAL\Schema\Table;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use LogicException;
+use Shredio\RapidDatabaseOperations\Schema\TemporaryTableOptions;
 use Shredio\RapidDatabaseOperations\Schema\TemporaryTableSchemaFactory;
 
 final readonly class DoctrineTemporaryTableSchemaFactory implements TemporaryTableSchemaFactory
@@ -30,7 +31,12 @@ final readonly class DoctrineTemporaryTableSchemaFactory implements TemporaryTab
 	 * @param list<Column> $additionalSchemaColumns
 	 * @return array{0: string, 1: string} SQL for create and drop temporary table
 	 */
-	public function createForExistence(array $requiredColumns, string $temporaryTableName, array $additionalSchemaColumns): array
+	public function createForExistence(
+		array $requiredColumns,
+		string $temporaryTableName,
+		array $additionalSchemaColumns,
+		?TemporaryTableOptions $options = null,
+	): array
 	{
 		$indexes = [];
 
@@ -42,12 +48,12 @@ final readonly class DoctrineTemporaryTableSchemaFactory implements TemporaryTab
 				->create();
 		}
 
-		return $this->execute($requiredColumns, $temporaryTableName, $additionalSchemaColumns, $indexes);
+		return $this->execute($requiredColumns, $temporaryTableName, $additionalSchemaColumns, $indexes, $options);
 	}
 
-	public function create(array $requiredColumns, string $temporaryTableName): array
+	public function create(array $requiredColumns, string $temporaryTableName, ?TemporaryTableOptions $options = null): array
 	{
-		return $this->execute($requiredColumns, $temporaryTableName);
+		return $this->execute($requiredColumns, $temporaryTableName, options: $options);
 	}
 
 	/**
@@ -56,8 +62,16 @@ final readonly class DoctrineTemporaryTableSchemaFactory implements TemporaryTab
 	 * @param list<Index>|null $indexesToSet
 	 * @return array{0: string, 1: string} SQL for create and drop temporary table
 	 */
-	private function execute(array $requiredColumns, string $temporaryTableName, array $additionalSchemaColumns = [], ?array $indexesToSet = null): array
+	private function execute(
+		array $requiredColumns,
+		string $temporaryTableName,
+		array $additionalSchemaColumns = [],
+		?array $indexesToSet = null,
+		?TemporaryTableOptions $options = null,
+	): array
 	{
+		$options ??= new TemporaryTableOptions();
+
 		$platform = $this->em->getConnection()->getDatabasePlatform();
 		if (!$platform instanceof MySQLPlatform) {
 			throw new LogicException('Only MySQL platform is supported.');
@@ -86,7 +100,7 @@ final readonly class DoctrineTemporaryTableSchemaFactory implements TemporaryTab
 
 		$tableSchema = new Table(
 			$tableName,
-			[...$columns, ...$additionalSchemaColumns],
+			$this->tryToSetCollation([...$columns, ...$additionalSchemaColumns], $options->collation),
 			$indexesToSet,
 			$uniqueConstraints,
 			options: $originalTableSchema->getOptions(),
@@ -180,6 +194,25 @@ final readonly class DoctrineTemporaryTableSchemaFactory implements TemporaryTab
 		}
 
 		return $indexes;
+	}
+
+	/**
+	 * @param list<Column> $columns
+	 * @param non-empty-string|null $collation
+	 * @return list<Column>
+	 */
+	private function tryToSetCollation(array $columns, ?string $collation = null): array
+	{
+		if ($collation === null) {
+			return $columns;
+		}
+
+		return array_map(
+			fn (Column $column): Column => $column->edit()
+				->setCollation($collation)
+				->create(),
+			$columns,
+		);
 	}
 
 }

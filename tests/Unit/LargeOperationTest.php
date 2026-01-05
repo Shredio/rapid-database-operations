@@ -80,6 +80,22 @@ final class LargeOperationTest extends TestCase
 		], $snapshot);
 	}
 
+	public function testCollation(): void
+	{
+		$firstEarnings = new Earnings('AAPL', new DateTimeImmutable('2020-01-01'));
+		$firstEarnings->epsActual = 3.28;
+
+		$operation = $this->createOperation(Earnings::class, OperationType::Upsert, options: [
+			DatabaseRapidLargeOperation::TemporaryTableCollation => 'utf8mb4_0900_ai_ci',
+		]);
+
+		$operation->addEntity($firstEarnings);
+
+		$this->assertStringEqualsFile(__DIR__ . '/expect/collation.sql', $operation->getSql());
+
+		$this->assertSame(1, $operation->execute());
+	}
+
 	public function testUpsertUniqueViolation(): void
 	{
 		$firstEarnings = new Earnings('AAPL', new DateTimeImmutable('2020-01-01'));
@@ -497,6 +513,7 @@ final class LargeOperationTest extends TestCase
 	 * @template T of object
 	 * @param class-string<T> $entity
 	 * @param list<non-empty-string> $fieldsToMatch
+	 * @param array<string, mixed> $options
 	 * @return DatabaseRapidLargeOperation<T>
 	 */
 	private function createOperation(
@@ -504,6 +521,7 @@ final class LargeOperationTest extends TestCase
 		OperationType $operationType,
 		FieldSelection $fieldsToUpdate = new AllFields(),
 		array $fieldsToMatch = [],
+		array $options = [],
 	): DatabaseRapidLargeOperation
 	{
 		$em = $this->getEntityManager();
@@ -521,6 +539,7 @@ final class LargeOperationTest extends TestCase
 				new SuffixTemporaryTableNameGenerator('_tmp'),
 				$fieldsToUpdate,
 				$fieldsToMatch,
+				options: $options,
 			);
 		}
 
@@ -534,6 +553,7 @@ final class LargeOperationTest extends TestCase
 				new DoctrineTemporaryTableSchemaFactory($entity, $em),
 				DoctrineRapidOperationPlatformFactory::create($em->getConnection()->getDatabasePlatform()),
 				new SuffixTemporaryTableNameGenerator('_tmp'),
+				options: $options,
 			);
 		}
 
@@ -548,6 +568,7 @@ final class LargeOperationTest extends TestCase
 			new SuffixTemporaryTableNameGenerator('_tmp'),
 			$fieldsToUpdate,
 			$fieldsToMatch,
+			options: $options,
 		);
 	}
 
