@@ -94,6 +94,29 @@ final class InserterSqlTest extends TestCase
 
 	#[TestWith(['mysql'])]
 	#[TestWith(['sqlite'])]
+	public function testUpsertEmptyColumns(string $platform): void
+	{
+		$inserter = $this->createInserter(Article::class, $platform, [
+			DatabaseRapidInserter::Mode => DatabaseRapidInserter::ModeUpsert,
+			DatabaseRapidInserter::ColumnsToUpdate => [],
+		]);
+		$inserter->addRaw([
+			'id' => 1,
+			'title' => 'foo',
+			'content' => 'bar',
+		]);
+
+		if ($platform === 'sqlite') {
+			$expected = "INSERT INTO `articles` (`id`, `title`, `content`) VALUES ('1', 'foo', 'bar') ON CONFLICT(`id`) DO UPDATE SET `title` = excluded.`title`, `content` = excluded.`content`;";
+		} else {
+			$expected = "INSERT INTO `articles` (`id`, `title`, `content`) VALUES ('1', 'foo', 'bar') ON DUPLICATE KEY UPDATE `title` = VALUES(`title`), `content` = VALUES(`content`);";
+		}
+
+		$this->assertSame($expected, $inserter->getSql());
+	}
+
+	#[TestWith(['mysql'])]
+	#[TestWith(['sqlite'])]
 	public function testInsertNonExisting(string $platform): void
 	{
 		$inserter = $this->createInserter(Article::class, $platform, [

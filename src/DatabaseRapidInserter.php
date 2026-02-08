@@ -53,7 +53,7 @@ class DatabaseRapidInserter extends BaseRapidOperation implements RapidInserter
 	{
 		parent::__construct($entity, $operationMetadata, $escaper, $executor, $entityReferenceFactory);
 
-		if (isset($options[self::ColumnsToUpdate])) {
+		if (isset($options[self::ColumnsToUpdate]) && $options[self::ColumnsToUpdate] !== []) {
 			$this->columnsToUpdate = is_array($options[self::ColumnsToUpdate]) ? new FieldInclusion($options[self::ColumnsToUpdate]) : $options[self::ColumnsToUpdate]; // @phpstan-ignore-line
 		} else {
 			$this->columnsToUpdate = new AllFields();
