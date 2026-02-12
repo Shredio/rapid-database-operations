@@ -86,6 +86,10 @@ final readonly class FieldMetadataCollection
 				$isIdentifier,
 				false,
 			);
+
+			if ($fieldMapping->unique === true) {
+				$uniqueConstraints[] = [$fieldMapping->fieldName];
+			}
 		}
 
 		foreach ($metadata->associationMappings as $associationMapping) {
