@@ -358,4 +358,13 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 		return $this->inserter->getItemCount();
 	}
 
+	public function describeRow(int $rowIndex): ?string
+	{
+		if ($this->inserter instanceof DatabaseRapidInserter) {
+			return $this->inserter->describeRow($rowIndex);
+		}
+
+		return null;
+	}
+
 }

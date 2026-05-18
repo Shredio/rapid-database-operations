@@ -37,6 +37,12 @@ class DatabaseRapidInserter extends BaseRapidOperation implements RapidInserter
 	/** @var string[] */
 	private array $required = [];
 
+	/** @var list<string> */
+	private array $identifierFields = [];
+
+	/** @var array<int, string> 1-based row index to identifier description */
+	private array $rowIdentifiers = [];
+
 	/**
 	 * @param class-string<T> $entity
 	 * @param mixed[] $options
@@ -86,8 +92,14 @@ class DatabaseRapidInserter extends BaseRapidOperation implements RapidInserter
 
 		$this->count++;
 		$this->sql .= $this->buildValues($values) . ",\n";
+		$this->captureRowIdentifier($values);
 
 		return $this;
+	}
+
+	public function describeRow(int $rowIndex): ?string
+	{
+		return $this->rowIdentifiers[$rowIndex] ?? null;
 	}
 
 	public function getSql(): string
@@ -123,12 +135,53 @@ class DatabaseRapidInserter extends BaseRapidOperation implements RapidInserter
 	private function sqlForStart(OperationValues $values): string
 	{
 		$this->required = $keys = $values->keys();
+		$this->identifierFields = [];
+		foreach ($keys as $field) {
+			if ($this->operationMetadata->fields->get($field)->isIdentifier) {
+				$this->identifierFields[] = $field;
+			}
+		}
 
 		return sprintf(
 			'INSERT INTO %s (%s) VALUES ',
 			$this->escaper->escapeColumn($this->operationMetadata->tableName),
 			implode(', ', array_map($this->resolveField(...), $keys)),
 		);
+	}
+
+	private function captureRowIdentifier(OperationValues $values): void
+	{
+		if ($this->identifierFields === []) {
+			return;
+		}
+
+		$all = $values->all();
+		$parts = [];
+		foreach ($this->identifierFields as $field) {
+			if (!array_key_exists($field, $all)) {
+				continue;
+			}
+			$parts[] = sprintf('%s=%s', $field, $this->stringifyIdentifier($all[$field]));
+		}
+
+		if ($parts !== []) {
+			$this->rowIdentifiers[count($this->rowIdentifiers) + 1] = implode(', ', $parts);
+		}
+	}
+
+	private function stringifyIdentifier(mixed $value): string
+	{
+		if ($value === null) {
+			return 'NULL';
+		}
+		if (is_scalar($value)) {
+			return (string) $value;
+		}
+		if (is_object($value) && method_exists($value, '__toString')) {
+			return (string) $value;
+		}
+
+		return get_debug_type($value);
 	}
 
 	private function sqlForEnd(): string
@@ -233,6 +286,8 @@ class DatabaseRapidInserter extends BaseRapidOperation implements RapidInserter
 	{
 		$this->sql = '';
 		$this->required = [];
+		$this->identifierFields = [];
+		$this->rowIdentifiers = [];
 	}
 
 	public function getItemCount(): int
