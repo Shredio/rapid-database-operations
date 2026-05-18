@@ -23,6 +23,7 @@ use Tests\Common\DoctrineEnvironment;
 use Tests\Common\TestManagerRegistry;
 use Tests\TestCase;
 use Tests\Unit\Entity\Earnings;
+use Tests\Unit\Entity\Ticker;
 
 #[RequiresEnvironmentVariable('DB_CONNECTION', 'mysql')]
 final class LargeOperationTest extends TestCase
@@ -76,6 +77,40 @@ final class LargeOperationTest extends TestCase
 				'eps_estimated' => null,
 				'revenue_actual' => 91819000000,
 				'revenue_estimated' => null,
+			],
+		], $snapshot);
+	}
+
+	public function testUpsertUniqueGroup(): void
+	{
+		$em = $this->getEntityManager();
+		$em->persist(new Ticker(1, 'AAPL', 150));
+		$em->flush();
+
+		$firstUpdated = new Ticker(1, 'AAPL', 160);
+		$secondTicker = new Ticker(2, 'MSFT', 160);
+
+		$operation = $this->createOperation(Ticker::class, OperationType::Upsert);
+
+		$operation->addEntity($firstUpdated);
+		$operation->addEntity($secondTicker);
+
+		$this->assertStringEqualsFile(__DIR__ . '/expect/update_and_insert_unique_group.sql', $operation->getSql());
+
+		$this->assertSame(2, $operation->execute());
+
+		$snapshot = $this->getSnapshot(Ticker::class, ['symbol' => 'ASC']);
+
+		self::assertSame([
+			[
+				'id' => 1,
+				'symbol' => 'AAPL',
+				'price' => 160,
+			],
+			[
+				'id' => 2,
+				'symbol' => 'MSFT',
+				'price' => 160,
 			],
 		], $snapshot);
 	}
