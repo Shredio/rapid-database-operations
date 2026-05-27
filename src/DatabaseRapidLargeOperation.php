@@ -251,7 +251,7 @@ final class DatabaseRapidLargeOperation extends BaseRapidOperation
 			$this->fieldsToUpdate->getFields($this->operationMetadata->selectFieldsToUpdate($requiredFields)),
 		);
 		$columnsToInsert = array_map(
-			fn (string $field): string => $this->resolveField($field, false),
+			fn (string $field): string => $this->resolveField($field),
 			$this->operationMetadata->selectFieldsToInsert($requiredFields),
 		);
 
